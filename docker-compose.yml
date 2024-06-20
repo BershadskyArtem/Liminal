@@ -1,0 +1,6 @@
+﻿services:
+  liminal.example:
+    image: liminal.example
+    build:
+      context: .
+      dockerfile: Liminal.Example/Dockerfile

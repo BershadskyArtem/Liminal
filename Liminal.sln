@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Common", "Liminal.Common\Liminal.Common.csproj", "{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth", "Liminal.Auth\Liminal.Auth.csproj", "{8569B86B-3141-46C2-A577-F9997B0F65A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Example", "Liminal.Example\Liminal.Example.csproj", "{4BCFD636-9B2B-4211-947B-4A06E17ACB66}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D78DA89F-9224-48D6-A999-984473C4E6A6}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.EntityFrameworkCore", "Liminal.Auth.EntityFrameworkCore\Liminal.Auth.EntityFrameworkCore.csproj", "{32425740-1FA5-443F-A5D4-0897FB82B4C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
