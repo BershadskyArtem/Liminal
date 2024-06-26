@@ -9,11 +9,14 @@ public class OAuthSignInResult
     public bool IsSuccess { get; private set; }
     public string? RefreshToken { get; set; }
     public string? FailureMessage { get; private set; }
+    public string Provider { get; set; }
+    public string? RedirectAfter { get; set; }
     public List<Claim> Claims { get; set; } = [];
 
     public static OAuthSignInResult Success(
         string accessToken, 
         string email, 
+        string provider,
         List<Claim> claims, 
         string? refreshToken) =>
         new OAuthSignInResult()
@@ -22,7 +25,8 @@ public class OAuthSignInResult
             Email = email,
             IsSuccess = true,
             RefreshToken = refreshToken,
-            Claims = claims
+            Claims = claims,
+            Provider = provider,
         };
     
     public static OAuthSignInResult Failure(string? failureMessage) =>

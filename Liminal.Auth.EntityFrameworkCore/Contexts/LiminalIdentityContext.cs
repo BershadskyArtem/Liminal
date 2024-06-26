@@ -11,7 +11,9 @@ public class LiminalIdentityContext<TUser> : DbContext
     
     public DbSet<TUser> Users { get; set; }
     public DbSet<Account> Accounts { get; set; }
-    public DbSet<Password> Passwords { get; set; }
+    public DbSet<AccountToken> Passwords { get; set; }
     public DbSet<UserClaim> UserClaims { get; set; }
+    public DbSet<AccountClaim> AccountClaims { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<UserToken> UserTokens { get; set; }
 }

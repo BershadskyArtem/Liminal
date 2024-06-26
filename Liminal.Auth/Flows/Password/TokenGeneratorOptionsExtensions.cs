@@ -1,6 +1,5 @@
 using Liminal.Auth.Models;
 using Liminal.Auth.Options;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Liminal.Auth.Flows.Password;
 

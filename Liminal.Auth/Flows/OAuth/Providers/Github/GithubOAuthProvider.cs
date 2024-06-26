@@ -12,7 +12,7 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
     private string ClientId => options.ClientId;
     private string ClientSecret => options.ClientSecret;
 
-    public Task<string> GetRedirectUrl(string state)
+    public Task<string> GetRedirectUrl(string? state)
     {
         return Task
             .FromResult($"https://github.com/login/oauth/authorize?client_id={ClientId}&state={state}&scope=user,email");
@@ -41,7 +41,12 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
 
             var userInfo = await GetUserInfo(httpClient, ghResponse.AccessToken);
 
-            return OAuthSignInResult.Success(ghResponse.AccessToken, userInfo.Email, new List<Claim>(), null);
+            return OAuthSignInResult.Success(ghResponse.AccessToken, userInfo.Email, Name,
+            [
+                new Claim("sub", userInfo.ExternalId),
+                new Claim("pic", userInfo.AvatarUrl),
+                new Claim("email", userInfo.Email)
+            ],null);
         }
         finally
         {

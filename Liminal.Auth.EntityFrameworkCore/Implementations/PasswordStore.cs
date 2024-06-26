@@ -9,57 +9,61 @@ public class PasswordStore<TDbContext, TUser>(TDbContext context) : IPasswordSto
     where TDbContext : LiminalIdentityContext<TUser>
     where TUser : AbstractUser
 {
-
-    public async Task<string?> GetHashedPasswordByEmailAsync(string email)
+    protected DbSet<AccountToken> Data => context.Set<AccountToken>();
+    public async Task<AccountToken?> GetByAccountIdAsync(Guid accountId, string tokenName)
     {
-        var password = await context
-            .Set<Password>()
-            .FirstOrDefaultAsync(p => p.Email == email && p.TokenName == "password");
-
-        return password?.TokenValue;
+        return await Data.FirstOrDefaultAsync(password =>
+            password.AccountId == accountId && password.TokenName == tokenName);
     }
 
-    public async Task SetPasswordAsync(string email, Guid accountId, string hashedPassword)
+    public async Task<bool> AddAsync(AccountToken accountToken, bool save = false)
     {
-        var user = await context.Set<TUser>().FirstOrDefaultAsync(u => u.Email == email);
+        await Data.AddAsync(accountToken);
+        return await MaybeSaveChangesAsync(save);
+    }
 
-        if (user is null)
-        {
-            throw new ArgumentException(nameof(email));
-        }
-        
-        var password = await context.Set<Password>()
-            .FirstOrDefaultAsync(p => p.Email == email && p.TokenName == "password" && p.AccountId == accountId);
+    public async Task<bool> SetByAccountIdAsync(Guid id, string tokenName, string tokenValue, bool save = false)
+    {
+        // Chore: Consider introducing ExecuteUpdateAsync from Relational Extensions.
+        var password = await Data.FirstOrDefaultAsync(password => password.AccountId == id && password.TokenName == tokenName);
 
         if (password is null)
         {
-            password = new Password()
-            {
-                TokenValue = hashedPassword,
-                TokenName = "password",
-                UserId = user.Id,
-                AccountId = accountId,
-                Email = email,
-                Id = Guid.NewGuid()
-            };
-            await context.Set<Password>().AddAsync(password);
-            await context.SaveChangesAsync();
-            return;
+            return false;
         }
 
-        password.TokenValue = hashedPassword;
-        context.Set<Password>().Update(password);
+        password.TokenValue = tokenValue;
 
-        await context.SaveChangesAsync();
+        return await UpdateAsync(password, save);
     }
 
-    public Task<bool> SetOrAddTokenAsync(Guid userId, Guid accountId, string tokenName, string tokenValue)
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return await context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public Task<string?> GetTokenByEmailAsync(string email, string providerName, string accessToken)
+    public async Task<bool> UpdateAsync(AccountToken accountToken, bool save = false)
     {
-        throw new NotImplementedException();
+        Data.Update(accountToken);
+        return await MaybeSaveChangesAsync(save);
+    }
+
+    public async Task<AccountToken?> GetByValueAsync(string providerName, string tokenValue)
+    {
+        return await Data.FirstOrDefaultAsync(token => token.TokenValue == tokenValue && token.Provider == providerName);
+    }
+
+    public async Task<bool> RemoveAsync(AccountToken password, bool save = false)
+    {
+        Data.Remove(password);
+        return await MaybeSaveChangesAsync(save);
+    }
+
+    private async Task<bool> MaybeSaveChangesAsync(bool save, CancellationToken cancellationToken = default)
+    {
+        if (!save)
+            return true;
+
+        return await SaveChangesAsync(cancellationToken);
     }
 }

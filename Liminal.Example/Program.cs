@@ -1,12 +1,14 @@
 using System.Text;
 using Liminal.Auth.EntityFrameworkCore;
 using Liminal.Auth.Extensions;
+using Liminal.Auth.Flows.MagicLink;
 using Liminal.Auth.Flows.OAuth;
 using Liminal.Auth.Flows.OAuth.Providers.Github;
 using Liminal.Auth.Flows.Password;
 using Liminal.Auth.Jwt;
 using Liminal.Example;
-using Microsoft.AspNetCore.Mvc;
+using Liminal.Mail;
+using Liminal.Mail.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -25,9 +27,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddLiminalAuth(options =>
 {
     options
-        .AddJwtTokenGenerator(tokenOptions =>
+        .AddJwtTokenGenerator<ApplicationUser>(tokenOptions =>
         {
-            tokenOptions.Build();
+            tokenOptions.AccessTokenLifetime = TimeSpan.FromMinutes(3);
+            tokenOptions.CryptoKey = 
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Liminal:Auth:Jwt:Secret"]!));
+        })
+        .AddMagickLink<ApplicationUser>(linkOptions =>
+        {
+            linkOptions.ActivateUrl = builder.Configuration["Liminal:Auth:MagicLink:ConfirmPath"]!;
         })
         .AddPasswordFlow<ApplicationUser>()
         .AddOAuth<ApplicationUser>(oAuthOptions =>
@@ -44,6 +52,8 @@ builder.Services.AddLiminalAuth(options =>
 
     options.AddEntityFrameworkStores<ApplicationDbContext, ApplicationUser>();
 });
+
+builder.Services.AddMailer<ConsoleMailer>();
 
 builder.Services.AddCors(options =>
 {
@@ -64,48 +74,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("allow-github");
 
-//app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 
-app.MapGet("/redir", Handler)
-    .WithName("Redirect to github")
-    .WithOpenApi();
-
-app.MapGet("/callback", Callback)
-    .WithName("Callback for github")
-    .WithOpenApi();
-
-async Task<IResult> Handler([FromServices] OAuthFlow<ApplicationUser> flow)
-{
-    var result = await flow.GetRedirectUrl("github");
-    return TypedResults.Redirect(result);
-}
-
-async Task<IResult> Callback(
-    [FromQuery] string code,
-    [FromQuery] string state,
-    [FromServices] OAuthFlow<ApplicationUser> flow)
-{
-    var result = await flow.Callback("github", code, state, () =>
-    {
-        return new ApplicationUser()
-        {
-            Email = string.Empty
-        };
-    });
-    
-    
-    
-    return TypedResults.Redirect(result.User.Email);
-}
-
-
+app.MapPassword<ApplicationUser>();
+app.MapMagic<ApplicationUser>();
+app.MapOAuth<ApplicationUser>();
 
 app.Run();
 
-namespace Liminal.Example
-{
-    record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-    {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
-}

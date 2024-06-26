@@ -13,11 +13,11 @@ public static class LiminalAuthOptionsExtensions
         where TUser : AbstractUser 
         where TDbContext : LiminalIdentityContext<TUser>
     {
-        builder.Services.AddScoped<IAccountStore, AccountStore>();
-        builder.Services.AddScoped<IClaimsStore, ClaimsStore>();
+        builder.Services.AddScoped<IAccountStore, AccountStore<TDbContext, TUser>>();
         builder.Services.AddScoped<IPasswordStore, PasswordStore<TDbContext, TUser>>();
-        builder.Services.AddScoped<IUserStore<TUser>, UserStore<TUser>>();
-        
+        builder.Services.AddScoped<IUserStore<TUser>, UserStore<TDbContext, TUser>>();
+        builder.Services.AddScoped<IUserTokenStore, UserTokenStore<TDbContext, TUser>>();
+        builder.Services.AddScoped<IClaimsStore, ClaimsStore<TDbContext, TUser>>();
         return builder;
     }
 }

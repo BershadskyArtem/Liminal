@@ -1,3 +1,4 @@
+using FluentValidation;
 using Liminal.Auth.Options;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +16,8 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();
+
+        services.AddValidatorsFromAssembly(AssemblyMarker.Assembly);
         
         return services;
     }

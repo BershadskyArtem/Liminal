@@ -18,6 +18,7 @@ public class StateGenerator(OAuthFlowBuilder builder)
         {
             new ("provider", provider),
             new ("redirect_after", redirectAfter),
+            new ("flow_state", Guid.NewGuid().ToString())
         };
 
         var tokenOptions = new JwtSecurityToken(
@@ -58,18 +59,10 @@ public class StateGenerator(OAuthFlowBuilder builder)
         
         var flowState = tokenResult.Claims
             .FirstOrDefault(c => c.Key == "flow_state").Value.ToString();
-        
-        var siteUrl = tokenResult.Claims
-            .FirstOrDefault(c => c.Key == "site_url").Value.ToString();
-
-        var redirectUrl = tokenResult.Claims
-            .FirstOrDefault(c => c.Key == "redirect_url").Value.ToString();
 
         if (provider is null ||
             redirectAfter is null ||
-            flowState is null ||
-            siteUrl is null || 
-            redirectUrl is null
+            flowState is null
            )
         {
             throw new ArgumentException(nameof(state));
@@ -79,9 +72,7 @@ public class StateGenerator(OAuthFlowBuilder builder)
         {
             FlowState = flowState,
             Provider = provider,
-            RedirectAfter = redirectAfter,
-            RedirectUrl = redirectUrl,
-            SiteUrl = siteUrl
+            RedirectAfter = redirectAfter
         };
 
         return jwtState;

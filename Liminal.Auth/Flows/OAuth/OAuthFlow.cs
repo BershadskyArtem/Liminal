@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Models;
+using Liminal.Auth.Results;
 
 namespace Liminal.Auth.Flows.OAuth;
 
@@ -9,6 +9,7 @@ public class OAuthFlow<TUser>(
     StateGenerator stateGenerator,
     IUserStore<TUser> userStore, 
     IPasswordStore passwordStore,
+    IClaimsStore claimsStore,
     IAccountStore accountStore) : IAuthFlow 
     where TUser : AbstractUser
 {
@@ -27,85 +28,97 @@ public class OAuthFlow<TUser>(
 
         var signInResult = await provider.SignInOAuthAsync(code, state);
 
+        if (!string.IsNullOrWhiteSpace(state))
+        {
+            var parsedState = await stateGenerator.ParseState(state);
+            signInResult.RedirectAfter = parsedState.RedirectAfter;
+        }
+
         if (!signInResult.IsSuccess)
         {
-           return CallbackResult<TUser>.Failure();
+           return CallbackResult<TUser>.Failure(signInResult.FailureMessage ?? "Cannot sign in using provider.");
         }
         
-        var existingUser = await userStore.GetUserByEmailAsync(signInResult.Email);
+        var existingUser = await userStore.GetByEmailAsync(signInResult.Email);
 
         var existingAccount = await accountStore.GetByProviderAsync(signInResult.Email, providerName);
 
-        // Generate claims principal 
-        var principal = CreateClaimsPrincipal(signInResult);
-        
-        if (existingUser is not null)
+        if (existingUser is null)
         {
-            existingAccount ??= new Account()
+            existingUser = userFactory();
+            existingUser.Id = Guid.NewGuid();
+            existingUser.Email = signInResult.Email;
+            existingUser.IsConfirmed = true;
+            await userStore.AddAsync(existingUser, true);
+        }
+        else if(!existingUser.IsConfirmed)
+        {
+            existingUser.IsConfirmed = true;
+            await userStore.UpdateAsync(existingUser, true);
+        }
+
+        if (existingAccount is null)
+        {
+            existingAccount = new Account()
             {
                 Provider = providerName,
                 UserId = existingUser.Id,
-                Id = Guid.NewGuid()
+                Id = Guid.NewGuid(),
+                Email = signInResult.Email,
+                IsConfirmed = true,
             };
             
-            await StoreTokens(signInResult, existingUser, existingAccount);
-
-            return CallbackResult<TUser>.Success(existingUser.Email, principal);
+            await accountStore.AddAsync(existingAccount, true);
+            await claimsStore.AddRangeAsync(signInResult.Claims, existingUser.Id, existingAccount.Id, providerName, true);
         }
         
-        // Register user 
-        var user = userFactory();
+        await StoreTokens(signInResult, existingAccount);
 
-        user.Id = Guid.NewGuid();
-        user.Email = signInResult.Email;
-        
-        var account = new Account()
-        {
-            Provider = providerName,
-            UserId = user.Id,
-            Id = Guid.NewGuid()
-        };
+        var existingPrincipal = existingUser.ToPrincipal();
 
-        await userStore.AddUserAsync(user);
-
-        await accountStore.AddAsync(account);
-
-        await StoreTokens(signInResult, user, account);
-
-        return CallbackResult<TUser>.Success(user.Email, principal);
+        return CallbackResult<TUser>.Success(existingUser.Email, existingPrincipal, signInResult?.RedirectAfter);
     }
-
-    private static ClaimsPrincipal CreateClaimsPrincipal(OAuthSignInResult signInResult)
+    
+    public async Task<OAuthTokensResult> GetTokensForProvider(Guid accountId, bool autoRefresh = false)
     {
-        var identity = new ClaimsIdentity();
-        identity.AddClaims(signInResult.Claims);
-            
-        // Update claims 
-            
-        var principal = new ClaimsPrincipal(identity);
-        return principal;
+        var refreshToken = await passwordStore.GetByAccountIdAsync(accountId, "refresh_token");
+        var accessToken = await passwordStore.GetByAccountIdAsync(accountId, "access_token");
+
+        return new OAuthTokensResult()
+        {
+            AccessToken = accessToken?.TokenValue,
+            RefreshToken = refreshToken?.TokenValue
+        };
     }
 
-    private async Task StoreTokens(OAuthSignInResult signInResult, TUser existingUser, Account account)
+    private async Task StoreTokens(OAuthSignInResult signInResult, Account account)
     {
         // Store tokens and get user roles and claims
         if (signInResult.RefreshToken is not null)
         {
-            await passwordStore.SetOrAddTokenAsync(existingUser.Id, account.Id, "refresh_token", signInResult.RefreshToken);
+            await SetTokenAsync(signInResult.Provider, "refresh_token", signInResult.RefreshToken, account.Id);
         }
+        
+        await SetTokenAsync(signInResult.Provider, "access_token", signInResult.AccessToken, account.Id);
 
-        await passwordStore.SetOrAddTokenAsync(existingUser.Id, account.Id, "access_token", signInResult.AccessToken);
+        await passwordStore.SaveChangesAsync();
     }
 
-    public async Task<OAuthTokensResult> GetTokensForProvider(string providerName, string email, bool autoRefresh = false)
+    private async Task SetTokenAsync(string provider, string tokenName, string tokenValue, Guid accountId)
     {
-        var accessToken = await passwordStore.GetTokenByEmailAsync(email, providerName, "access_token");
-        var refreshToken = await passwordStore.GetTokenByEmailAsync(email, providerName, "refresh_token");
+        var existingToken = await passwordStore.GetByAccountIdAsync(accountId, "refresh_token");
 
-        return new OAuthTokensResult()
+        if (existingToken is null)
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken
-        };
+            existingToken = AccountToken.Create(accountId, provider, tokenName,
+                tokenValue);
+
+            await passwordStore.AddAsync(existingToken);
+            return;
+        }
+
+        existingToken.TokenValue = tokenValue;
+
+        await passwordStore.UpdateAsync(existingToken);
     }
 }

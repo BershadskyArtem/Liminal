@@ -21,5 +21,5 @@ public interface ITokenGenerator
     /// </summary>
     /// <param name="refreshToken"></param>
     /// <returns></returns>
-    public Task<RefreshTokenResult> RefreshToken(string refreshToken);
+    public Task<GenerateTokenResult> RefreshToken(string refreshToken);
 }

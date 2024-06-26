@@ -12,8 +12,8 @@ public class LiminalAuthBuilder(IServiceCollection services) : AbstractOptions(s
         where TOptions : AbstractOptions
     {
         var builder = new TokenGeneratorBuilder(Services);
-        
-        Services.AddScoped(typeof(TGenerator));
+
+        Services.AddKeyedScoped(typeof(ITokenGenerator), name, typeof(TGenerator));
 
         Services.AddSingleton(optionsInstance);
 

@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Liminal.Auth.Flows.OAuth;

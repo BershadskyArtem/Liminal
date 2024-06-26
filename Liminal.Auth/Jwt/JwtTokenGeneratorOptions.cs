@@ -1,5 +1,6 @@
 using Liminal.Auth.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Liminal.Auth.Jwt;
 
@@ -7,6 +8,8 @@ public class JwtTokenGeneratorOptions(IServiceCollection services) : AbstractOpt
 {
     public override void Build()
     {
-        Services.AddSingleton<JwtTokenGenerator>();
     }
+
+    public SecurityKey CryptoKey { get; set; }
+    public TimeSpan AccessTokenLifetime { get; set; }
 }
