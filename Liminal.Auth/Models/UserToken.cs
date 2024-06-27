@@ -24,7 +24,8 @@ public class UserToken
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
 
-        if ((string.IsNullOrWhiteSpace(refreshToken)) ^ (refreshTokenValidBefore is null))
+        if ((string.IsNullOrWhiteSpace(refreshToken)) ^ (refreshTokenValidBefore is null)
+            )
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
             {

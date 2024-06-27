@@ -6,7 +6,7 @@ namespace Liminal.Auth.Flows.OAuth;
 
 public class StateGenerator(OAuthFlowBuilder builder)
 {
-    public string GenerateState(string provider, string redirectAfter)
+    public string GenerateState(string provider, string redirectAfter, Guid? linkingTargetId = null)
     {
         var secretKey = builder.StateCryptoKey;
 
@@ -20,6 +20,11 @@ public class StateGenerator(OAuthFlowBuilder builder)
             new ("redirect_after", redirectAfter),
             new ("flow_state", Guid.NewGuid().ToString())
         };
+
+        if (linkingTargetId is not null)
+        {
+            claims.Add(new Claim("target_id", linkingTargetId.ToString()!));
+        }
 
         var tokenOptions = new JwtSecurityToken(
             signingCredentials: signingCredentials,
@@ -67,12 +72,29 @@ public class StateGenerator(OAuthFlowBuilder builder)
         {
             throw new ArgumentException(nameof(state));
         }
+        
+        var targetUserId = tokenResult.Claims
+            .FirstOrDefault(c => c.Key == "target_id").Value?.ToString();
+
+        Guid? targetId = null;
+        if (!string.IsNullOrWhiteSpace(targetUserId))
+        {
+            if (Guid.TryParse(targetUserId, out var temp))
+            {
+                targetId = temp;
+            }
+            else
+            {
+                throw new Exception("Unable to parse target user id.");
+            }
+        }
 
         var jwtState = new State()
         {
             FlowState = flowState,
             Provider = provider,
-            RedirectAfter = redirectAfter
+            RedirectAfter = redirectAfter,
+            TargetUserId = targetId
         };
 
         return jwtState;

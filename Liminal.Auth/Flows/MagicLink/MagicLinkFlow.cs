@@ -9,6 +9,7 @@ public class MagicLinkFlow<TUser>(
     MagicLinkOptions options,
     AbstractMailer mailer,
     IPasswordStore passwordStore,
+    IAccountLinker<TUser> accountLinker,
     IAccountStore accountStore,
     IUserStore<TUser> userStore) : IAuthFlow 
     where TUser : AbstractUser
@@ -17,28 +18,42 @@ public class MagicLinkFlow<TUser>(
 
     public async Task<bool> SendLink(string email, Func<TUser> factory)
     {
-        var existingUser = await userStore.GetByEmailAsync(email);
-
-        if (existingUser is null)
-        {
-            existingUser = factory();
-
-            await userStore.AddAsync(existingUser, true);
-        }
+        var existingAccount = await accountStore.GetByProviderAsync(email, Name);
+        TUser? existingUser = null;
         
-        var existingAccount = await accountStore.GetByProviderAsync(existingUser.Id, Name);
-        
+        // If account does not exist then we need to get the user with the given email.
+        // If the user is verified then we create account and link. 
+        // If the user is not verified we do not link and instead generate new user.
         if (existingAccount is null)
         {
-            existingAccount = new Account()
+            existingUser = await userStore.GetByEmailAsync(email);
+
+            // If the user does not exist or is not confirmed then we create one.
+            // Do not allow not confirmed account linking.
+            if (existingUser is null || !existingUser.IsConfirmed)
             {
-                Email = email,
-                Id = Guid.NewGuid(),
-                Provider = Name,
-                UserId = existingUser.Id
-            };
+                existingUser = CreateUser(email, factory, true);
+
+                await userStore.AddAsync(existingUser, true);
+            }
+
+            existingAccount = Account.CreateConfirmed(Name, email, existingUser.Id);
 
             await accountStore.AddAsync(existingAccount, true);
+        }
+        
+        // If the account exists that means that we have already done some type of flow before.
+        // Check if the user is confirmed. 
+        // If confirmed then link automatically.
+        // If not confirmed create new user.
+        existingUser ??= await userStore.GetByEmailAsync(email);
+        
+        if (existingUser is null || !existingUser.IsConfirmed)
+        {
+            existingUser = CreateUser(email, factory, true);
+            await userStore.AddAsync(existingUser, true);
+            existingAccount.UserId = existingUser.Id;
+            await accountStore.UpdateAsync(existingAccount, true);
         }
         
         var token = CryptoUtils.GenerateRandomString(64);
@@ -50,7 +65,7 @@ public class MagicLinkFlow<TUser>(
                                      """);
         return sent;
     }
-
+    
     public async Task<MagicFlowActivateResult> ActivateAsync(string token)
     {
         var password= await passwordStore.GetByValueAsync(Name, token);
@@ -73,14 +88,16 @@ public class MagicLinkFlow<TUser>(
         
         if (!account.IsConfirmed)
         {
-            account.IsConfirmed = true;
-            await accountStore.UpdateAsync(account ,true);
+            // if account is not confirmed it means that something went horribly wrong at the sending stage
+            // TODO: Log this case.
+            return MagicFlowActivateResult.Failure();
         }
 
         if (!user.IsConfirmed)
         {
-            user.IsConfirmed = true;
-            await userStore.UpdateAsync(user ,true);
+            // if user is not confirmed it means that something went horribly wrong at the sending stage
+            // TODO: Log this case.
+            return MagicFlowActivateResult.Failure();
         }
         
         await passwordStore.RemoveAsync(password, true);
@@ -88,4 +105,23 @@ public class MagicLinkFlow<TUser>(
         var principal = user.ToPrincipal();
         return MagicFlowActivateResult.Success(principal, account.Email);
     }
+    
+    private static TUser CreateUser(string email, Func<TUser> factory, bool confirmed)
+    {
+        TUser existingUser;
+        existingUser = factory();
+        existingUser.Id = Guid.NewGuid();
+        existingUser.Email = email;
+        if (confirmed)
+        {
+            existingUser.Confirm();
+        }
+        else
+        {
+            existingUser.UnConfirm();
+        }
+        
+        return existingUser;
+    }
+
 }

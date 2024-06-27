@@ -19,6 +19,8 @@ public static class HttpContextExtensions
             return tokens;
         }
 
+        //context.Response.Headers.Append("Authorization", $"{tokenType} {tokens.AccessToken}");
+        
         context.Response.Cookies.Append("Authorization", $"{tokenType} {tokens.AccessToken}", new CookieOptions()
         {
             Expires = DateTimeOffset.UtcNow.AddDays(30),
@@ -49,7 +51,7 @@ public static class HttpContextExtensions
     {
         if (!context.Request.Cookies.TryGetValue("RefreshToken", out var refreshTokenCookie))
         {
-            return GenerateTokenResult.Failure();
+            return GenerateTokenResult.Failure("Invalid token.");
         }
 
         var tokenType = refreshTokenCookie.Split(" ")[0];

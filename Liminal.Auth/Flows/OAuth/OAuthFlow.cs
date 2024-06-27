@@ -15,10 +15,11 @@ public class OAuthFlow<TUser>(
 {
     public string Name { get; } = "oauth";
     
-    public Task<string> GetRedirectUrl(string providerName, string redirectAfter = "/")
+    // Got idea from supabase auth. GetExternalProviderRedirectUrl also gets an optional user as a linking target.
+    public Task<string> GetRedirectUrl(string providerName, string redirectAfter = "/", Guid? linkingTargetId = null)
     {
         var provider = providersCollection.GetProvider(providerName);
-        var state = stateGenerator.GenerateState(providerName, redirectAfter);
+        var state = stateGenerator.GenerateState(providerName, redirectAfter, linkingTargetId);
         return provider.GetRedirectUrl(state);
     }
 
@@ -28,48 +29,66 @@ public class OAuthFlow<TUser>(
 
         var signInResult = await provider.SignInOAuthAsync(code, state);
 
+        if (!signInResult.IsSuccess)
+        {
+            return CallbackResult<TUser>.Failure(signInResult.FailureMessage ?? "Cannot sign in using provider.");
+        }
+        
+        Guid? targetUserId = null;
+        
         if (!string.IsNullOrWhiteSpace(state))
         {
             var parsedState = await stateGenerator.ParseState(state);
             signInResult.RedirectAfter = parsedState.RedirectAfter;
-        }
-
-        if (!signInResult.IsSuccess)
-        {
-           return CallbackResult<TUser>.Failure(signInResult.FailureMessage ?? "Cannot sign in using provider.");
+            targetUserId = parsedState.TargetUserId;
         }
         
-        var existingUser = await userStore.GetByEmailAsync(signInResult.Email);
-
         var existingAccount = await accountStore.GetByProviderAsync(signInResult.Email, providerName);
+        TUser? existingUser = null;
+        // If account does not exist
+        // Then we get the user.
+        if (existingAccount is null)
+        {
+            existingUser ??= await GetTargetUserUsingTargetIdAsync(targetUserId);
+            
+            existingUser ??= await userStore.GetByEmailAsync(signInResult.Email);
 
-        if (existingUser is null)
+            // If user does not exist or is not confirmed
+            // then we create new user
+            // We do not allow unconfirmed account linking.
+            if (existingUser is null || !existingUser.IsConfirmed)
+            {
+                existingUser = userFactory();
+                existingUser.Id = Guid.NewGuid();
+                existingUser.Email = signInResult.Email;
+                existingUser.Confirm();
+
+                await userStore.AddAsync(existingUser, true);
+            }
+            
+            existingAccount = Account.CreateConfirmed($"{Name}_{providerName}", signInResult.Email, existingUser.Id);
+
+            await accountStore.AddAsync(existingAccount, true);
+        }
+        
+        // We do not care if the existingAccount already has userId. 
+        // TODO: Check if account is linked to User 1 to 1.
+        // If 1 to 1 then we can do this if not then we cannot.
+        // But in such a case we need to delete old one.
+        // For now let's not care.
+        existingUser ??= await GetTargetUserUsingTargetIdAsync(targetUserId);
+        
+        // In case that account exists but user does not.
+        existingUser ??= await userStore.GetByIdAsync(existingAccount.UserId);
+        
+        // If the user still does not exist or is not confirmed then we crate a new user.
+        if (existingUser is null || !existingUser.IsConfirmed)
         {
             existingUser = userFactory();
             existingUser.Id = Guid.NewGuid();
             existingUser.Email = signInResult.Email;
-            existingUser.IsConfirmed = true;
+            existingUser.Confirm();
             await userStore.AddAsync(existingUser, true);
-        }
-        else if(!existingUser.IsConfirmed)
-        {
-            existingUser.IsConfirmed = true;
-            await userStore.UpdateAsync(existingUser, true);
-        }
-
-        if (existingAccount is null)
-        {
-            existingAccount = new Account()
-            {
-                Provider = providerName,
-                UserId = existingUser.Id,
-                Id = Guid.NewGuid(),
-                Email = signInResult.Email,
-                IsConfirmed = true,
-            };
-            
-            await accountStore.AddAsync(existingAccount, true);
-            await claimsStore.AddRangeAsync(signInResult.Claims, existingUser.Id, existingAccount.Id, providerName, true);
         }
         
         await StoreTokens(signInResult, existingAccount);
@@ -78,7 +97,7 @@ public class OAuthFlow<TUser>(
 
         return CallbackResult<TUser>.Success(existingUser.Email, existingPrincipal, signInResult?.RedirectAfter);
     }
-    
+
     public async Task<OAuthTokensResult> GetTokensForProvider(Guid accountId, bool autoRefresh = false)
     {
         var refreshToken = await passwordStore.GetByAccountIdAsync(accountId, "refresh_token");
@@ -120,5 +139,28 @@ public class OAuthFlow<TUser>(
         existingToken.TokenValue = tokenValue;
 
         await passwordStore.UpdateAsync(existingToken);
+    }
+    
+    private async Task<TUser?> GetTargetUserUsingTargetIdAsync(Guid? targetUserId)
+    {
+        TUser? existingUser = null;
+
+        if (targetUserId is null)
+        {
+            return existingUser;
+        }
+        
+        existingUser = await userStore.GetByIdAsync(targetUserId.Value);
+
+        if (existingUser is null)
+        {
+            throw new Exception("User id is present in the state but not in DB.");
+        }
+        else if (!existingUser.IsConfirmed)
+        {
+            throw new Exception("User is not confirmed but present as a target in the state.");
+        }
+
+        return existingUser;
     }
 }

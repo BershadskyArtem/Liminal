@@ -1,4 +1,5 @@
 using System.Text;
+using Liminal.Auth.Endpoints;
 using Liminal.Auth.EntityFrameworkCore;
 using Liminal.Auth.Extensions;
 using Liminal.Auth.Flows.MagicLink;
@@ -9,7 +10,9 @@ using Liminal.Auth.Jwt;
 using Liminal.Example;
 using Liminal.Mail;
 using Liminal.Mail.Implementations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +27,75 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseInMemoryDatabase("inmem.db");
 });
 
-builder.Services.AddLiminalAuth(options =>
+var tokenFullValidationParams = new TokenValidationParameters()
+{
+    ValidateIssuerSigningKey = true,
+    ClockSkew = TimeSpan.Zero,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Liminal:Auth:Jwt:Secret"]!)),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    RequireExpirationTime = false,
+    ValidateLifetime = true
+};
+IdentityModelEventSource.ShowPII = true;
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(opt =>
+{
+    opt.SaveToken = true;
+    opt.TokenValidationParameters = tokenFullValidationParams;
+    opt.MapInboundClaims = false;
+    opt.Events = new JwtBearerEvents()
+    {
+        OnChallenge = c =>
+        {
+            int d = 10;
+            var l = c;
+            return Task.CompletedTask;
+        },
+        
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Cookies["Authorization"];
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return Task.CompletedTask;
+            }
+
+            // Get the actual token or jiberish. 
+            // And let ShitSoft handle anything else.
+            var leftPart = token.Split(" ").Last();
+
+            context.Token = leftPart;
+            return Task.CompletedTask;
+        },
+        
+        OnTokenValidated = c =>
+        {
+            int dl = 10;
+            var l = c;
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = c =>
+        {
+            Console.WriteLine(c.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnForbidden = c =>
+        {
+            var i = 10;
+            var e = c;
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddLiminalAuth<ApplicationUser>(options =>
 {
     options
         .AddJwtTokenGenerator<ApplicationUser>(tokenOptions =>
@@ -35,11 +106,19 @@ builder.Services.AddLiminalAuth(options =>
         })
         .AddMagickLink<ApplicationUser>(linkOptions =>
         {
+            linkOptions.DefaultRole = RolesDefaults.Basic;
             linkOptions.ActivateUrl = builder.Configuration["Liminal:Auth:MagicLink:ConfirmPath"]!;
         })
-        .AddPasswordFlow<ApplicationUser>()
+        .AddPasswordFlow<ApplicationUser>(passwordOptions =>
+        {
+            passwordOptions.DefaultRole = RolesDefaults.NotConfirmed;
+            passwordOptions.ConfirmedRole = RolesDefaults.Basic;
+            passwordOptions.ActivateUrl = builder.Configuration["Liminal:Auth:Password:ConfirmPath"]!;
+        })
         .AddOAuth<ApplicationUser>(oAuthOptions =>
         {
+            oAuthOptions.DefaultRole = RolesDefaults.Basic;
+            
             oAuthOptions.StateCryptoKey =
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Liminal:Auth:OAuth:StateKey"]!));
             
@@ -76,9 +155,13 @@ app.UseCors("allow-github");
 
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapPassword<ApplicationUser>();
 app.MapMagic<ApplicationUser>();
 app.MapOAuth<ApplicationUser>();
+app.MapLinking<ApplicationUser>();
 
 app.Run();
 

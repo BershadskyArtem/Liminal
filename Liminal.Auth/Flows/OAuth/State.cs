@@ -7,4 +7,5 @@ public class State
     public string FlowState { get; init; } = default!;
     public string SiteUrl { get; init; } = default!;
     public string RedirectUrl { get; init; } = default!;
+    public Guid? TargetUserId { get; set; }
 }

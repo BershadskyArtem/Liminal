@@ -14,15 +14,23 @@ public class GenerateTokenResult : ResultBase
     public int Lifetime { get; set; }
     [JsonPropertyName("type")]
     public string Type { get; set; }
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
     
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     protected GenerateTokenResult()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     { }
     
-    public static GenerateTokenResult Failure()
+    public static GenerateTokenResult Failure(string message)
     {
         return new GenerateTokenResult()
         {
-            IsSuccess = false
+            IsSuccess = false,
+            AccessToken = string.Empty,
+            RefreshToken = string.Empty,
+            Type = string.Empty,
+            Message = message
         };
     }
     
@@ -35,7 +43,8 @@ public class GenerateTokenResult : ResultBase
             Expires = expires,
             IsSuccess = true,
             Lifetime = seconds,
-            Type = type
+            Type = type,
+            Message = "success"
         };
     }
 }

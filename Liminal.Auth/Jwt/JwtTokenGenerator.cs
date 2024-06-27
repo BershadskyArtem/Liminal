@@ -26,7 +26,9 @@ public class JwtTokenGenerator<TUser>(
 
         var tokenOptions = new JwtSecurityToken(
             signingCredentials: signingCredentials,
-            expires: expires.DateTime.ToUniversalTime(),
+            // TODO: This is a very dirty hack. Remove it later.
+            // This is caused by time differences. UTC -> Moscow = 3 hours.
+            expires: DateTime.UtcNow.Add(options.AccessTokenLifetime).AddHours(3),
             claims: claims);
         
         var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
@@ -39,10 +41,10 @@ public class JwtTokenGenerator<TUser>(
 
         if (string.IsNullOrWhiteSpace(subClaim))
         {
-            return GenerateTokenResult.Failure();
+            return GenerateTokenResult.Failure("sub claims does not exist.");
         } else if (!Guid.TryParse(subClaim, out userId))
         {
-            return GenerateTokenResult.Failure();
+            return GenerateTokenResult.Failure("sub claim is not valid.");
         }
 
         var tokenSet = UserToken.Create(userId, token, expires, refreshToken, DateTimeOffset.UtcNow.AddDays(60));
@@ -50,7 +52,7 @@ public class JwtTokenGenerator<TUser>(
         await userTokenStore.AddAsync(tokenSet, true);
         
         return GenerateTokenResult
-            .Success(token, refreshToken, expires.DateTime.ToUniversalTime(), options.AccessTokenLifetime.Seconds, Name);
+            .Success(token, refreshToken, expires.DateTime.ToUniversalTime(), (int)options.AccessTokenLifetime.TotalSeconds, Name);
     }
 
     public async Task<GenerateTokenResult> RefreshToken(string refreshToken)
@@ -59,14 +61,14 @@ public class JwtTokenGenerator<TUser>(
 
         if (tokenSet is null)
         {
-            return GenerateTokenResult.Failure();
+            return GenerateTokenResult.Failure("Invalid token.");
         }
 
         var user = await userStore.GetByIdAsync(tokenSet.UserId);
 
         if (user is null)
         {
-            return GenerateTokenResult.Failure();
+            return GenerateTokenResult.Failure("Invalid token.");
         }
 
         var principal = user.ToPrincipal();

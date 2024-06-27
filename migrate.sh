@@ -1,0 +1,1 @@
+dotnet ef migrations add AddedIdentity --startup-project src/MinimalAuth.Api --project src/MinimalAuth.Stores.EntityFramework --context MinimalAuthDbContext --output-dir Migrations
