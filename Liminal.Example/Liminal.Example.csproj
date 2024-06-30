@@ -23,6 +23,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Liminal.Auth.EntityFrameworkCore\Liminal.Auth.EntityFrameworkCore.csproj" />
       <ProjectReference Include="..\Liminal.Auth\Liminal.Auth.csproj" />
+      <ProjectReference Include="..\Liminal.Reporting\Liminal.Reporting.csproj" />
     </ItemGroup>
 
 </Project>

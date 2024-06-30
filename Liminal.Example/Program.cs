@@ -7,9 +7,12 @@ using Liminal.Auth.Flows.OAuth;
 using Liminal.Auth.Flows.OAuth.Providers.Github;
 using Liminal.Auth.Flows.Password;
 using Liminal.Auth.Jwt;
+using Liminal.Auth.Requirements;
 using Liminal.Example;
 using Liminal.Mail;
 using Liminal.Mail.Implementations;
+using Liminal.Reporting;
+using Liminal.Reporting.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -27,6 +30,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseInMemoryDatabase("inmem.db");
 });
 
+builder.Services.AddLiminalReporting<ApplicationDbContext>();
+
 var tokenFullValidationParams = new TokenValidationParameters()
 {
     ValidateIssuerSigningKey = true,
@@ -37,7 +42,7 @@ var tokenFullValidationParams = new TokenValidationParameters()
     RequireExpirationTime = false,
     ValidateLifetime = true
 };
-IdentityModelEventSource.ShowPII = true;
+
 builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,13 +55,6 @@ builder.Services.AddAuthentication(opt =>
     opt.MapInboundClaims = false;
     opt.Events = new JwtBearerEvents()
     {
-        OnChallenge = c =>
-        {
-            int d = 10;
-            var l = c;
-            return Task.CompletedTask;
-        },
-        
         OnMessageReceived = context =>
         {
             var token = context.Request.Cookies["Authorization"];
@@ -72,28 +70,16 @@ builder.Services.AddAuthentication(opt =>
             context.Token = leftPart;
             return Task.CompletedTask;
         },
-        
-        OnTokenValidated = c =>
-        {
-            int dl = 10;
-            var l = c;
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = c =>
-        {
-            Console.WriteLine(c.Exception.Message);
-            return Task.CompletedTask;
-        },
-        OnForbidden = c =>
-        {
-            var i = 10;
-            var e = c;
-            return Task.CompletedTask;
-        }
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(cfg =>
+{
+    cfg.AddPolicy(PolicyDefaults.AdminName, options =>
+    {
+        options.RequireRole(RoleDefaults.Admin, RoleDefaults.SuperAdmin);
+    });
+});
 
 builder.Services.AddLiminalAuth<ApplicationUser>(options =>
 {
@@ -106,18 +92,18 @@ builder.Services.AddLiminalAuth<ApplicationUser>(options =>
         })
         .AddMagickLink<ApplicationUser>(linkOptions =>
         {
-            linkOptions.DefaultRole = RolesDefaults.Basic;
+            linkOptions.DefaultRole = RoleDefaults.Admin;
             linkOptions.ActivateUrl = builder.Configuration["Liminal:Auth:MagicLink:ConfirmPath"]!;
         })
         .AddPasswordFlow<ApplicationUser>(passwordOptions =>
         {
-            passwordOptions.DefaultRole = RolesDefaults.NotConfirmed;
-            passwordOptions.ConfirmedRole = RolesDefaults.Basic;
+            passwordOptions.DefaultRole = RoleDefaults.NotConfirmed;
+            passwordOptions.ConfirmedRole = RoleDefaults.Basic;
             passwordOptions.ActivateUrl = builder.Configuration["Liminal:Auth:Password:ConfirmPath"]!;
         })
         .AddOAuth<ApplicationUser>(oAuthOptions =>
         {
-            oAuthOptions.DefaultRole = RolesDefaults.Basic;
+            oAuthOptions.DefaultRole = RoleDefaults.Basic;
             
             oAuthOptions.StateCryptoKey =
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Liminal:Auth:OAuth:StateKey"]!));
@@ -149,6 +135,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    IdentityModelEventSource.ShowPII = true;
 }
 
 app.UseCors("allow-github");
@@ -162,6 +149,7 @@ app.MapPassword<ApplicationUser>();
 app.MapMagic<ApplicationUser>();
 app.MapOAuth<ApplicationUser>();
 app.MapLinking<ApplicationUser>();
+app.MapReport<ApplicationUser>();
 
 app.Run();
 

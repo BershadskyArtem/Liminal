@@ -31,7 +31,7 @@ public class MagicLinkFlow<TUser>(
             // Do not allow not confirmed account linking.
             if (existingUser is null)
             {
-                existingUser = CreateUser(email, factory, true);
+                existingUser = CreateUser(email, factory, true, options.DefaultRole);
 
                 await userStore.AddAsync(existingUser, true);
             }
@@ -106,12 +106,13 @@ public class MagicLinkFlow<TUser>(
         return MagicFlowActivateResult.Success(principal, account.Email);
     }
     
-    private static TUser CreateUser(string email, Func<TUser> factory, bool confirmed)
+    private static TUser CreateUser(string email, Func<TUser> factory, bool confirmed, string role)
     {
         TUser existingUser;
         existingUser = factory();
         existingUser.Id = Guid.NewGuid();
         existingUser.Email = email;
+        existingUser.Role = role;
         if (confirmed)
         {
             existingUser.Confirm();

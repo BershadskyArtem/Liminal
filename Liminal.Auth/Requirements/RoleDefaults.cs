@@ -1,6 +1,6 @@
-namespace Liminal.Example;
+namespace Liminal.Auth.Requirements;
 
-public class RolesDefaults
+public static class RoleDefaults
 {
     public static readonly string NotConfirmed = "not_confirmed";
     public static readonly string Basic = "basic";

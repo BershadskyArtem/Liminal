@@ -1,9 +1,10 @@
 using Liminal.Auth.Models;
+using Liminal.Common.EntityFrameworkCore.Contexts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Liminal.Auth.EntityFrameworkCore.Contexts;
 
-public class LiminalIdentityContext<TUser> : DbContext
+public class LiminalIdentityContext<TUser> : HookingDbContext
     where TUser : AbstractUser
 {
     public LiminalIdentityContext(DbContextOptions options) : base(options)

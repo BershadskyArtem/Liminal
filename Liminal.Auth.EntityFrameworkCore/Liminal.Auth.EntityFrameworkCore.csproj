@@ -21,6 +21,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Liminal.Auth\Liminal.Auth.csproj" />
+      <ProjectReference Include="..\Liminal.Common\Liminal.Common.csproj" />
     </ItemGroup>
 
 </Project>
