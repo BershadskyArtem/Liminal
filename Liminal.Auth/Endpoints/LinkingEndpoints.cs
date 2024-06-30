@@ -33,8 +33,14 @@ public static class LinkingEndpoints
         app
             .MapPost("api/auth/link", LinkAccount<TUser>)
             .RequireAuthorization()
-            .WithName("Link account to user.")
-            .WithDescription("Links account from body to a user.");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "Link account to user";
+                options.Description = "Links account from body to a user";
+                return options;
+            })
+            .WithTags("Linking");
+        
         return app;
     }
 
@@ -78,8 +84,14 @@ public static class LinkingEndpoints
         app
             .MapDelete("api/auth/link", UnLinkAccount<TUser>)
             .RequireAuthorization()
-            .WithName("UnLink account from user.")
-            .WithDescription("UnLinks account from a user.");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "UnLink account";
+                options.Description = "UnLinks OAuth account from a user";
+                return options;
+            })
+            .WithTags("Linking");
+        
         return app;
     }
 

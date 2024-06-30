@@ -1,3 +1,4 @@
+using Liminal.Auth.Flows.OAuth.Providers;
 using Liminal.Auth.Models;
 using Liminal.Auth.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,8 @@ public static class TokenGeneratorOptionsExtensions
         cfg(options);
 
         builder.Services.AddScoped<OAuthFlow<TUser>>();
+        builder.Services.AddScoped<IOAuthProvidersProvider, OAuthProvidersProvider>();
+        builder.Services.AddScoped<IStateGenerator, StateGenerator>();
         builder.Services.AddSingleton<StateGenerator>();
         builder.Services.AddScoped<OAuthProvidersProvider>();
         

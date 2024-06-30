@@ -1,12 +1,12 @@
 using System.Collections.Frozen;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Liminal.Auth.Flows.OAuth;
+namespace Liminal.Auth.Flows.OAuth.Providers;
 
 /// <summary>
 /// Actually funny name 
 /// </summary>
-public class OAuthProvidersProvider
+public class OAuthProvidersProvider : IOAuthProvidersProvider
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly FrozenDictionary<string, IOAuthProvider> _providers;
@@ -28,5 +28,4 @@ public class OAuthProvidersProvider
     {
         return _serviceProvider.GetRequiredKeyedService<IOAuthProvider>(key);
     }
-    
 }

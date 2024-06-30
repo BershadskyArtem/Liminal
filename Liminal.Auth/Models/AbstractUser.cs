@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace Liminal.Auth.Models;
 
-public abstract class AbstractUser
+public class AbstractUser
 {
     public Guid Id { get; set; }
     public virtual required string Email { get; set; }

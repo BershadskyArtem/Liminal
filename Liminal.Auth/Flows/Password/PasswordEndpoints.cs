@@ -31,8 +31,12 @@ public static class PasswordEndpoints
         app
             .MapPost("api/auth/password/register", RegisterEndpoint<TUser>)
             .AllowAnonymous()
-            .WithName("Password register")
-            .WithDescription("Register user using password and email.");
+            .WithOpenApi(options =>
+            {
+                options.Description = "Register user using password and email";
+                options.Summary = "Password register";
+                return options;
+            }).WithTags("Password");
         
         return app;
     }
@@ -105,8 +109,13 @@ public static class PasswordEndpoints
     {
         app.MapPost("api/auth/password/confirm", SendConfirmationEndpoint<TUser>) 
             .AllowAnonymous()
-            .WithName("Send confirmation email.")
-            .WithDescription("Send confirmation email using password flow.");;
+            .WithOpenApi(options =>
+            {
+                options.Description = "Send confirmation email using password flow";
+                options.Summary = "Send confirmation email";
+                return options;
+            })
+            .WithTags("Password");
         
         return app;
     }
@@ -154,8 +163,13 @@ public static class PasswordEndpoints
     {
         app.MapGet("api/auth/password/confirm", ConfirmAccount<TUser>) 
             .AllowAnonymous()
-            .WithName("Confirm account")
-            .WithDescription("Confirm password account using token.");
+            .WithOpenApi(options =>
+            {
+                options.Description = "Confirm password account using token";
+                options.Summary = "Confirm account";
+                return options;
+            })
+            .WithTags("Password");
         
         return app;
     }
@@ -211,8 +225,14 @@ public static class PasswordEndpoints
     {
         app.MapPost("api/auth/login", LoginEndpoint<TUser>) 
             .AllowAnonymous()
-            .WithName("Login using password")
-            .WithDescription("Login using email and password and password flow.");
+            .WithOpenApi(options =>
+            {
+                options.Description = "Login using email and password and password flow";
+                options.Summary = "Login using password";
+                return options;
+            })
+            .WithTags("Password");
+           
         return app;
     }
 

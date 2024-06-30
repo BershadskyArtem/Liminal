@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.EntityFramewor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Mail", "Liminal.Mail\Liminal.Mail.csproj", "{6260C9EF-99A2-4108-8AF2-309034DE17D7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{19062859-7C8A-4A56-9C7F-9A6CBC3730CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.UnitTests", "Liminal.Auth.UnitTests\Liminal.Auth.UnitTests.csproj", "{86B29017-08E2-454E-9FE7-9C1EEB55B926}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,5 +45,12 @@ Global
 		{6260C9EF-99A2-4108-8AF2-309034DE17D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6260C9EF-99A2-4108-8AF2-309034DE17D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6260C9EF-99A2-4108-8AF2-309034DE17D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86B29017-08E2-454E-9FE7-9C1EEB55B926}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86B29017-08E2-454E-9FE7-9C1EEB55B926}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86B29017-08E2-454E-9FE7-9C1EEB55B926}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86B29017-08E2-454E-9FE7-9C1EEB55B926}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{86B29017-08E2-454E-9FE7-9C1EEB55B926} = {19062859-7C8A-4A56-9C7F-9A6CBC3730CE}
 	EndGlobalSection
 EndGlobal

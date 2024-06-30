@@ -1,15 +1,15 @@
 using Liminal.Auth.Abstractions;
+using Liminal.Auth.Flows.OAuth.Providers;
 using Liminal.Auth.Models;
 using Liminal.Auth.Results;
 
 namespace Liminal.Auth.Flows.OAuth;
 
 public class OAuthFlow<TUser>(
-    OAuthProvidersProvider providersCollection,
-    StateGenerator stateGenerator,
+    IOAuthProvidersProvider providersCollection,
+    IStateGenerator stateGenerator,
     IUserStore<TUser> userStore, 
     IPasswordStore passwordStore,
-    IClaimsStore claimsStore,
     IAccountStore accountStore) : IAuthFlow 
     where TUser : AbstractUser
 {
@@ -49,15 +49,45 @@ public class OAuthFlow<TUser>(
         // Then we get the user.
         if (existingAccount is null)
         {
-            existingUser ??= await GetTargetUserUsingTargetIdAsync(targetUserId);
-            
-            existingUser ??= await userStore.GetByEmailAsync(signInResult.Email);
+            // If target user then we need to get him.
+            if (targetUserId is not null)
+            {
+                existingUser ??= await GetTargetUserUsingTargetIdAsync(targetUserId);
 
+                if (existingUser is null)
+                {
+                    return CallbackResult<TUser>.Failure("No user to link.");
+                }
+
+                existingAccount =
+                    Account.CreateConfirmed($"{Name}_{providerName}", existingUser.Email, existingUser.Id);
+
+                var result = await accountStore.AddAsync(existingAccount, true);
+
+                if (!result)
+                {
+                    return CallbackResult<TUser>.Failure("Cannot save new account.");
+                }
+                
+                await StoreTokens(signInResult, existingAccount);
+
+                return CallbackResult<TUser>
+                    .Success(existingUser.Email, existingUser.ToPrincipal(), signInResult.RedirectAfter);
+            }
+
+            // I assume that if hacker has access to OAuth account then it is not my responsibility 
+            // to check validity of the external session.
+            // Ignore that. May send confirmation email later?
+            
+            // If no target user.
+            existingUser ??= await userStore.GetByEmailAsync(signInResult.Email);
+            
             // If user does not exist or is not confirmed
             // then we create new user
             // We do not allow unconfirmed account linking.
             if (existingUser is null || !existingUser.IsConfirmed)
             {
+                // Create new user for not confirmed account.
                 existingUser = userFactory();
                 existingUser.Id = Guid.NewGuid();
                 existingUser.Email = signInResult.Email;
@@ -65,10 +95,13 @@ public class OAuthFlow<TUser>(
 
                 await userStore.AddAsync(existingUser, true);
             }
-            
-            existingAccount = Account.CreateConfirmed($"{Name}_{providerName}", signInResult.Email, existingUser.Id);
 
-            await accountStore.AddAsync(existingAccount, true);
+            existingAccount = Account.CreateConfirmed($"{Name}_{providerName}", existingUser.Email, existingUser.Id);
+            // Link account and the user. 
+            existingAccount.UserId = existingUser.Id;
+            await accountStore.UpdateAsync(existingAccount, true);
+            
+            await accountStore.AddAsync(existingAccount!, true);
         }
         
         // We do not care if the existingAccount already has userId. 
@@ -79,16 +112,42 @@ public class OAuthFlow<TUser>(
         existingUser ??= await GetTargetUserUsingTargetIdAsync(targetUserId);
         
         // In case that account exists but user does not.
+        // This is redundant but i am going to keep it.
         existingUser ??= await userStore.GetByIdAsync(existingAccount.UserId);
-        
-        // If the user still does not exist or is not confirmed then we crate a new user.
-        if (existingUser is null || !existingUser.IsConfirmed)
+
+        if (existingUser is null)
         {
-            existingUser = userFactory();
-            existingUser.Id = Guid.NewGuid();
-            existingUser.Email = signInResult.Email;
+            throw new Exception("Existing user is null. Account is orphan!!!");
+        }
+
+        
+        // If we did not try intentionally connect accounts to 
+        // not confirmed user
+        // We can have 2 ways:
+        // 1. Connect automatically since this is a 99% real user.
+        // 2. Fuck this 1% hacker.
+        // I am going to connect and confirm then.
+        if (!existingUser.IsConfirmed && targetUserId is not null)
+        {
+           
+            // It means that the account tries to link to not confirmed user
+            // Do not allow that.
+            return CallbackResult<TUser>.Failure("Cannot link to a not confirmed user.");    
+        }
+        
+        // NEVER ROLL YOUR OWN AUTH. 
+        // TODO: Check that the user is generated specifically for this account.
+        // Connect user and account and confirm if it is not.
+        if (existingUser.Id != existingAccount.UserId)
+        {
+            existingAccount.UserId = existingUser.Id;
+            await accountStore.UpdateAsync(existingAccount, true);
+        }
+
+        if (!existingUser.IsConfirmed)
+        {
             existingUser.Confirm();
-            await userStore.AddAsync(existingUser, true);
+            await userStore.UpdateAsync(existingUser, true);
         }
         
         await StoreTokens(signInResult, existingAccount);

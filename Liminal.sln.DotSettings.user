@@ -1,0 +1,13 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=daaf6812_002Da587_002D47c2_002Dab29_002Dacf5d9f40db3/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Callback_ShouldSucceedAndCreateAccountAndUser_WhenAccountAndUserDoNotExist" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldSucceedAndCreateAccountAndUser_WhenAccountAndUserDoNotExist&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldFailAnd_WhenAccountAndUserDoNotExistAndTargetUserDoesNotExist&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldSucceed_WhenAccountDoesNotExistAndTargetUserExistsWithMatchingEmails&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldFail_WhenAccountDoesNotExistAndTargetUserExistsWithMatchingEmailsNotConfirmed&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldThrow_WhenAccountAndUserDoNotExistAndTargetUserDoesNotExist&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldSucceed_WhenLinkedAccountAndUserExistConfirmedNoTarget&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldSucceed_WhenLinkedAccountAndUserExistConfirmedWithTarget&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::86B29017-08E2-454E-9FE7-9C1EEB55B926::net8.0::Liminal.Auth.UnitTests.OAuth.OAuthFlowTests.Callback_ShouldSucceedAndConfirm_WhenLinkedAccountAndUserExistNotConfirmedWithValidTarget&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

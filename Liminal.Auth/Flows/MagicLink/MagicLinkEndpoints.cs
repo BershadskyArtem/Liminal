@@ -42,8 +42,14 @@ public static class MagicLinkEndpoints
         app
             .MapPost("api/auth/magic", SendMagic<TUser>)
             .AllowAnonymous()
-            .WithName("Send magic link.")
-            .WithDescription("Sends magic link to the specified email.");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "Send magic link";
+                options.Description = "Sends magic link to the specified email";
+
+                return options;
+            })
+            .WithTags("Magic link");
         return app;
     }
     
@@ -97,8 +103,15 @@ public static class MagicLinkEndpoints
         app
             .MapGet("api/auth/magic/{id}", AuthenticateMagic<TUser>)
             .AllowAnonymous()
-            .WithName("Magic callback.")
-            .WithDescription("Authenticates user using magic link in route.");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "Magic callback";
+                options.Description = "Authenticates user using magic link in route";
+
+                return options;
+            })
+            .WithTags("Magic link");
+        
         return app;
     }
 

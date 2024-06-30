@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Liminal.Auth.Flows.OAuth;
 
-public class StateGenerator(OAuthFlowBuilder builder)
+public class StateGenerator(OAuthFlowBuilder builder) : IStateGenerator
 {
     public string GenerateState(string provider, string redirectAfter, Guid? linkingTargetId = null)
     {

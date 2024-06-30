@@ -26,8 +26,14 @@ public static class OAuthEndpoints
         app
             .MapGet("api/auth/oauth/{provider}", RedirectToProvider<TUser>)
             .AllowAnonymous()
-            .WithName("OAuth redirect to provider")
-            .WithDescription("Redirects to a given provider for authentification");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "OAuth redirect to provider";
+                options.Description = "Redirects to a given provider for authentification";
+
+                return options;
+            })
+            .WithTags("OAuth");
         
         return app;
     }
@@ -38,8 +44,14 @@ public static class OAuthEndpoints
         app
             .MapGet("api/auth/oauth/callback/{provider}", Callback<TUser>)
             .AllowAnonymous()
-            .WithName("OAuth callback")
-            .WithDescription("Callback for OAuth providers.");
+            .WithOpenApi(options =>
+            {
+                options.Summary = "OAuth callback";
+                options.Description = "Callback for OAuth providers";
+
+                return options;
+            })
+            .WithTags("OAuth");
         
         return app;
     }

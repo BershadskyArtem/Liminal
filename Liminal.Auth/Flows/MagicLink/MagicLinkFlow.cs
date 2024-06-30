@@ -9,7 +9,6 @@ public class MagicLinkFlow<TUser>(
     MagicLinkOptions options,
     AbstractMailer mailer,
     IPasswordStore passwordStore,
-    IAccountLinker<TUser> accountLinker,
     IAccountStore accountStore,
     IUserStore<TUser> userStore) : IAuthFlow 
     where TUser : AbstractUser
@@ -30,30 +29,31 @@ public class MagicLinkFlow<TUser>(
 
             // If the user does not exist or is not confirmed then we create one.
             // Do not allow not confirmed account linking.
-            if (existingUser is null || !existingUser.IsConfirmed)
+            if (existingUser is null)
             {
                 existingUser = CreateUser(email, factory, true);
 
                 await userStore.AddAsync(existingUser, true);
             }
 
+            if (!existingUser.IsConfirmed)
+            {
+                existingUser.Confirm();
+                await userStore.UpdateAsync(existingUser, true);
+            }
+            
             existingAccount = Account.CreateConfirmed(Name, email, existingUser.Id);
 
             await accountStore.AddAsync(existingAccount, true);
         }
         
-        // If the account exists that means that we have already done some type of flow before.
-        // Check if the user is confirmed. 
-        // If confirmed then link automatically.
-        // If not confirmed create new user.
+        // If the account exists that means that we have already done some type of flow before. 
+        // Therefore, user MUST EXIST and BE CONFIRMED.
         existingUser ??= await userStore.GetByEmailAsync(email);
         
         if (existingUser is null || !existingUser.IsConfirmed)
         {
-            existingUser = CreateUser(email, factory, true);
-            await userStore.AddAsync(existingUser, true);
-            existingAccount.UserId = existingUser.Id;
-            await accountStore.UpdateAsync(existingAccount, true);
+            return false;
         }
         
         var token = CryptoUtils.GenerateRandomString(64);

@@ -31,11 +31,9 @@ public class PasswordFlow<TUser>(
         TUser? existingUser = null;
 
         // If the account does not exist then we get the user
-        // If user does not exist or is not confirmed we create a new one.
-
         existingUser = await userStore.GetByEmailAsync(email);
 
-        if (existingUser is null || !existingUser.IsConfirmed)
+        if (existingUser is null)
         {
             existingUser = factory();
             existingUser.Id = Guid.NewGuid();
@@ -43,6 +41,11 @@ public class PasswordFlow<TUser>(
             existingUser.UnConfirm();
 
             await userStore.AddAsync(existingUser, true);
+        }
+        else
+        {
+            // Strange case but can happen if hackers really want this.
+            return false;
         }
 
         existingAccount = Account.CreateNotConfirmed(Name, email, existingUser.Id);
