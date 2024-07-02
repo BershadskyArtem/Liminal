@@ -1,25 +1,23 @@
 using System.Text.Json.Serialization;
 using ErrorOr;
 using FluentValidation;
+using HomeSchool.Core.Data;
+using HomeSchool.Core.Reporting.Violations.Domain;
+using HomeSchool.Core.Reporting.Violations.Enums;
+using HomeSchool.Core.Reporting.Violations.Services;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Models;
 using Liminal.Auth.Requirements;
 using Liminal.Common.EntityFrameworkCore;
 using Liminal.Common.Requests;
-using Liminal.Reporting.Abstractions;
-using Liminal.Reporting.Domain.Enums;
-using Liminal.Reporting.Domain.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Created = Microsoft.AspNetCore.Http.HttpResults.Created;
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-namespace Liminal.Reporting.Endpoints;
+namespace HomeSchool.Api.Features.Reporting.Violations;
 
 public static class ReportEndpoints
 {
@@ -211,6 +209,8 @@ public static class ReportEndpoints
         public bool IsResolved { get; set; }
         [JsonPropertyName("resolved_at")]
         public DateTimeOffset? ResolvedAt { get; set; }
+        [JsonPropertyName("resolve_message")]
+        public string? ResolveMessage { get; set; }
         [JsonPropertyName("resolved_by")]
         public Guid? ResolvedBy { get; set; }
         [JsonPropertyName("target_id")]
@@ -228,7 +228,8 @@ public static class ReportEndpoints
                 TargetId = report.TargetUserId,
                 Text = report.Text,
                 ResolvedAt = report.ResolvedAt,
-                ResolvedBy = report.ResolvedBy
+                ResolvedBy = report.ResolvedBy,
+                ResolveMessage = report.ResolveMessage
             };
         }
     }
@@ -236,7 +237,7 @@ public static class ReportEndpoints
     public static async Task<Results<Ok<GetReportResponse>, NotFound>> MapGetById<TUser>(
         [FromRoute] Guid id,
         [FromServices] IAuthContext<TUser> authContext,
-        [FromServices] IReportingDbContext context) 
+        [FromServices] ApplicationDbContext context) 
         where TUser : AbstractUser
     {
         var userId = authContext.UserId;
@@ -278,7 +279,7 @@ public static class ReportEndpoints
     public static async Task<Results<Ok<List<GetReportResponse>>, NotFound>> MapGetByFilter<TUser>(
         [AsParameters] GetReportsByFilterRequest req,
         [FromServices] IAuthContext<TUser> authContext,
-        [FromServices] IReportingDbContext context) 
+        [FromServices] ApplicationDbContext context) 
         where TUser : AbstractUser
     {
         var userId = authContext.UserId;

@@ -1,14 +1,14 @@
 using System.Security.Claims;
+using Liminal.Common.Domain.Models;
 
 namespace Liminal.Auth.Models;
 
-public class AbstractUser
+public class AbstractUser : AuditableEntity
 {
-    public Guid Id { get; set; }
     public virtual required string Email { get; set; }
     public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
-    public bool IsConfirmed { get; private set; }
-    public virtual string Role { get; set; } = default!;
+    public virtual bool IsConfirmed { get; private set; }
+    public virtual string Role { get; set; } = "default";
     public virtual ICollection<UserClaim> Claims { get; set; } = new List<UserClaim>();
     public virtual ICollection<UserToken> Tokens { get; set; } = new List<UserToken>();
 

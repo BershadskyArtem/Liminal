@@ -46,7 +46,7 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
                 new Claim("sub", userInfo.ExternalId),
                 new Claim("pic", userInfo.AvatarUrl),
                 new Claim("email", userInfo.Email)
-            ],null);
+            ],null, null);
         }
         finally
         {

@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Flows.OAuth;
 using Liminal.Auth.Flows.OAuth.Providers;
+using Liminal.Auth.Implementations;
 using Liminal.Auth.Models;
 using NSubstitute;
 using Xunit;
@@ -42,6 +46,7 @@ public class OAuthFlowTests
     private readonly IUserStore<AbstractUser> _userStore = Substitute.For<IUserStore<AbstractUser>>();
     private readonly IPasswordStore _passwordStore = Substitute.For<IPasswordStore>();
     private readonly IAccountStore _accountStore = Substitute.For<IAccountStore>();
+    private readonly IUserFactory<AbstractUser> _userFactory = new DefaultUserFactory<AbstractUser>();
     
     
     public OAuthFlowTests()
@@ -49,9 +54,11 @@ public class OAuthFlowTests
         _sut = new OAuthFlow<AbstractUser>(
             _proivders,
             _stateGenerator,
+            _userFactory,
             _userStore,
             _passwordStore,
             _accountStore);
+
     }
 
     [Fact]
@@ -68,7 +75,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims,  refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -96,10 +103,7 @@ public class OAuthFlowTests
             });
         
         // Act
-        var result = await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-        {
-            Email = Email1
-        });
+        var result = await _sut.Callback(Scheme, Code, EncodedState);
         
         // Assert
         Assert.NotNull(createdAccount);
@@ -123,7 +127,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -155,10 +159,7 @@ public class OAuthFlowTests
         // Act
         var call = async () =>
         {   
-            await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-            {
-                Email = Email1
-            });
+            await _sut.Callback(Scheme, Code, EncodedState);
         };
 
         await call.Should().ThrowAsync<Exception>();
@@ -182,7 +183,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -204,10 +205,7 @@ public class OAuthFlowTests
 
         User1.Confirm();
         // Act
-        var result = await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-        {
-            Email = Email1
-        });
+        var result = await _sut.Callback(Scheme, Code, EncodedState);
         
         // Assert
         Assert.NotNull(createdAccount);
@@ -228,7 +226,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -252,10 +250,7 @@ public class OAuthFlowTests
         // Act
         var result = async () =>
         {
-            await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-            {
-                Email = Email1
-            });
+            await _sut.Callback(Scheme, Code, EncodedState);
         };
 
         await result.Should().ThrowAsync<Exception>();
@@ -278,7 +273,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -290,10 +285,7 @@ public class OAuthFlowTests
         
         User1.Confirm();
         // Act
-        var result = await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-        {
-            Email = Email1
-        });
+        var result = await _sut.Callback(Scheme, Code, EncodedState);
         
         // Assert
         result.IsSuccess.Should().Be(true);
@@ -320,7 +312,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -332,10 +324,7 @@ public class OAuthFlowTests
         
         User1.Confirm();
         // Act
-        var result = await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-        {
-            Email = Email1
-        });
+        var result = await _sut.Callback(Scheme, Code, EncodedState);
         
         // Assert
         result.IsSuccess.Should().Be(true);
@@ -362,7 +351,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -374,10 +363,7 @@ public class OAuthFlowTests
         
         User1.UnConfirm();
         // Act
-        var result = await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-        {
-            Email = Email1
-        });
+        var result = await _sut.Callback(Scheme, Code, EncodedState);
         
         // Assert
         result.IsSuccess.Should().Be(true);
@@ -406,7 +392,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, RefreshToken)
+                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -420,17 +406,10 @@ public class OAuthFlowTests
         // Act
         var result = async () =>
         {
-            await _sut.Callback(Scheme, Code, EncodedState, () => new AbstractUser()
-            {
-                Email = Email1
-            });
+            await _sut.Callback(Scheme, Code, EncodedState);
         };
         
         // Assert
         await result.Should().ThrowAsync<Exception>();
     }
-    
-    
-    
-    
 }

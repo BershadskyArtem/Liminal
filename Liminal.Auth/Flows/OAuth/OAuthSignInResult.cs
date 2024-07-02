@@ -11,6 +11,7 @@ public class OAuthSignInResult
     public string? FailureMessage { get; private set; }
     public string Provider { get; set; }
     public string? RedirectAfter { get; set; }
+    public DateTimeOffset? AccessTokenValidUntil { get; set; }
     public List<Claim> Claims { get; set; } = [];
 
     public static OAuthSignInResult Success(
@@ -18,6 +19,7 @@ public class OAuthSignInResult
         string email, 
         string provider,
         List<Claim> claims, 
+        DateTimeOffset? validUntil,
         string? refreshToken) =>
         new OAuthSignInResult()
         {
@@ -27,6 +29,7 @@ public class OAuthSignInResult
             RefreshToken = refreshToken,
             Claims = claims,
             Provider = provider,
+            AccessTokenValidUntil = validUntil
         };
     
     public static OAuthSignInResult Failure(string? failureMessage) =>
@@ -36,6 +39,7 @@ public class OAuthSignInResult
             Email = string.Empty,
             IsSuccess = false,
             RefreshToken = null,
+            AccessTokenValidUntil = null,
             FailureMessage = failureMessage
         };
 }

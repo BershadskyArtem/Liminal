@@ -73,12 +73,7 @@ public static class OAuthEndpoints
         HttpContext context)
         where TUser : AbstractUser
     {
-        var result = await flow.Callback(provider, code, state, () =>
-        {
-            var result = Activator.CreateInstance<TUser>();
-            result.Id = Guid.NewGuid();
-            return result;
-        });
+        var result = await flow.Callback(provider, code, state);
 
         if (!result.IsSuccess)
         {

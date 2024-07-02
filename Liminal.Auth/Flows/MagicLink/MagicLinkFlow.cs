@@ -10,12 +10,13 @@ public class MagicLinkFlow<TUser>(
     AbstractMailer mailer,
     IPasswordStore passwordStore,
     IAccountStore accountStore,
+    IUserFactory<TUser> userFactory,
     IUserStore<TUser> userStore) : IAuthFlow 
     where TUser : AbstractUser
 {
     public string Name { get; } = MagicLinkDefaults.Scheme;
 
-    public async Task<bool> SendLink(string email, Func<TUser> factory)
+    public async Task<bool> SendLink(string email)
     {
         var existingAccount = await accountStore.GetByProviderAsync(email, Name);
         TUser? existingUser = null;
@@ -31,7 +32,8 @@ public class MagicLinkFlow<TUser>(
             // Do not allow not confirmed account linking.
             if (existingUser is null)
             {
-                existingUser = CreateUser(email, factory, true, options.DefaultRole);
+                existingUser = userFactory.CreateConfirmed(email);
+                existingUser.Role = options.DefaultRole;
 
                 await userStore.AddAsync(existingUser, true);
             }
@@ -57,7 +59,7 @@ public class MagicLinkFlow<TUser>(
         }
         
         var token = CryptoUtils.GenerateRandomString(64);
-        var password = AccountToken.Create(existingAccount.Id, Name, Name, token);
+        var password = AccountToken.Create(existingAccount.Id, Name, Name, token, null);
         await passwordStore.AddAsync(password, true);
         
         var sent = await mailer.SendEmailAsync(email, $"""
@@ -124,5 +126,4 @@ public class MagicLinkFlow<TUser>(
         
         return existingUser;
     }
-
 }

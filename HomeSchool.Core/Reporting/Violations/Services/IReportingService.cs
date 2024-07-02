@@ -1,7 +1,7 @@
 using ErrorOr;
-using Liminal.Reporting.Domain.Enums;
+using HomeSchool.Core.Reporting.Violations.Enums;
 
-namespace Liminal.Reporting.Abstractions;
+namespace HomeSchool.Core.Reporting.Violations.Services;
 
 public interface IReportingService
 {

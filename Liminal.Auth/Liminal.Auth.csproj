@@ -19,6 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Liminal.Common\Liminal.Common.csproj" />
       <ProjectReference Include="..\Liminal.Mail\Liminal.Mail.csproj" />
     </ItemGroup>
     

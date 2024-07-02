@@ -15,6 +15,12 @@ public class LiminalIdentityContext<TUser> : HookingDbContext
     public DbSet<AccountToken> Passwords { get; set; }
     public DbSet<UserClaim> UserClaims { get; set; }
     public DbSet<AccountClaim> AccountClaims { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<UserToken> UserTokens { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(AssemblyMarker.Current);
+        
+        base.OnModelCreating(modelBuilder);
+    }
 }

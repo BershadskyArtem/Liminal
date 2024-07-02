@@ -18,6 +18,7 @@ public static class LiminalAuthOptionsExtensions
         builder.Services.AddScoped<IUserStore<TUser>, UserStore<TDbContext, TUser>>();
         builder.Services.AddScoped<IUserTokenStore, UserTokenStore<TDbContext, TUser>>();
         builder.Services.AddScoped<IClaimsStore, ClaimsStore<TDbContext, TUser>>();
+        
         return builder;
     }
 }

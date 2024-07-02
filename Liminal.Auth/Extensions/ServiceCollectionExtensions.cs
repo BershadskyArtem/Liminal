@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssembly(AssemblyMarker.Assembly);
         services.AddScoped<IAuthContext<TUser>, DefaultAuthContext<TUser>>();
         services.AddScoped<IAccountLinker<TUser>, DefaultAccountLinker<TUser>>();
+        services.AddSingleton<IUserFactory<TUser>, DefaultUserFactory<TUser>>();
         
         return services;
     }

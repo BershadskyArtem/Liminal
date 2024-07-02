@@ -8,6 +8,7 @@ namespace Liminal.Auth.Flows.OAuth;
 public class OAuthFlow<TUser>(
     IOAuthProvidersProvider providersCollection,
     IStateGenerator stateGenerator,
+    IUserFactory<TUser> userFactory,
     IUserStore<TUser> userStore, 
     IPasswordStore passwordStore,
     IAccountStore accountStore) : IAuthFlow 
@@ -23,7 +24,7 @@ public class OAuthFlow<TUser>(
         return provider.GetRedirectUrl(state);
     }
 
-    public async Task<CallbackResult<TUser>> Callback(string providerName, string code, string? state, Func<TUser> userFactory)
+    public async Task<CallbackResult<TUser>> Callback(string providerName, string code, string? state)
     {
         var provider = providersCollection.GetProvider(providerName);
 
@@ -88,10 +89,7 @@ public class OAuthFlow<TUser>(
             if (existingUser is null || !existingUser.IsConfirmed)
             {
                 // Create new user for not confirmed account.
-                existingUser = userFactory();
-                existingUser.Id = Guid.NewGuid();
-                existingUser.Email = signInResult.Email;
-                existingUser.Confirm();
+                existingUser = userFactory.CreateConfirmed(signInResult.Email);
 
                 await userStore.AddAsync(existingUser, true);
             }
@@ -174,30 +172,34 @@ public class OAuthFlow<TUser>(
         // Store tokens and get user roles and claims
         if (signInResult.RefreshToken is not null)
         {
-            await SetTokenAsync(signInResult.Provider, "refresh_token", signInResult.RefreshToken, account.Id);
+            await SetTokenAsync(signInResult.Provider, "refresh_token", signInResult.RefreshToken, account.Id, signInResult.AccessTokenValidUntil);
         }
         
-        await SetTokenAsync(signInResult.Provider, "access_token", signInResult.AccessToken, account.Id);
+        await SetTokenAsync(signInResult.Provider, "access_token", signInResult.AccessToken, account.Id, signInResult.AccessTokenValidUntil);
 
         await passwordStore.SaveChangesAsync();
     }
 
-    private async Task SetTokenAsync(string provider, string tokenName, string tokenValue, Guid accountId)
+    private async Task SetTokenAsync(string provider, string tokenName, string tokenValue, Guid accountId, DateTimeOffset? expiryDate = null)
     {
-        var existingToken = await passwordStore.GetByAccountIdAsync(accountId, "refresh_token");
+        var existingToken = await passwordStore.GetByAccountIdAsync(accountId, tokenName);
 
         if (existingToken is null)
         {
-            existingToken = AccountToken.Create(accountId, provider, tokenName,
-                tokenValue);
+            existingToken = AccountToken.Create(
+                accountId, 
+                provider, 
+                tokenName,
+                tokenValue,
+                expiryDate);
 
-            await passwordStore.AddAsync(existingToken);
+            await passwordStore.AddAsync(existingToken, true);
             return;
         }
 
         existingToken.TokenValue = tokenValue;
 
-        await passwordStore.UpdateAsync(existingToken);
+        await passwordStore.UpdateAsync(existingToken, true);
     }
     
     private async Task<TUser?> GetTargetUserUsingTargetIdAsync(Guid? targetUserId)

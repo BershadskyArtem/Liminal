@@ -1,4 +1,4 @@
-namespace Liminal.Reporting.Domain.Enums;
+namespace HomeSchool.Core.Reporting.Violations.Enums;
 
 public enum ReportSeverity
 {

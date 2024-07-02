@@ -1,12 +1,12 @@
-using Liminal.Reporting.Abstractions;
-using Liminal.Reporting.Domain.Enums;
-using Liminal.Reporting.Domain.Models;
 using ErrorOr;
+using HomeSchool.Core.Data;
+using HomeSchool.Core.Reporting.Violations.Domain;
+using HomeSchool.Core.Reporting.Violations.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace Liminal.Reporting.Implementations;
+namespace HomeSchool.Core.Reporting.Violations.Services;
 
-public class ReportingService(IReportingDbContext context) : IReportingService
+public class ReportingService(ApplicationDbContext context) : IReportingService
 {
     private DbSet<Report> Data => context.Set<Report>();
     

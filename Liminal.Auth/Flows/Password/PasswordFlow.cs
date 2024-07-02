@@ -113,7 +113,7 @@ public class PasswordFlow<TUser>(
         }
 
         var token = CryptoUtils.GenerateRandomString(64);
-        var password = AccountToken.Create(account.Id, Name, Name, token);
+        var password = AccountToken.Create(account.Id, Name, Name, token, null);
         var success = await passwordStore.AddAsync(password, true);
 
         if (!success)
@@ -189,7 +189,8 @@ public class PasswordFlow<TUser>(
             account.Id,
             Name,
             Name,
-            hashedPassword);
+            hashedPassword,
+            null);
 
         return await passwordStore.AddAsync(password, true);
     }

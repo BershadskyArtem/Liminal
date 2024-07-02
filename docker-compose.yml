@@ -4,3 +4,9 @@
     build:
       context: .
       dockerfile: Liminal.Example/Dockerfile
+
+  homeschool.api:
+    image: homeschool.api
+    build:
+      context: .
+      dockerfile: HomeSchool.Api/Dockerfile

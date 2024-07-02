@@ -10,7 +10,6 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
@@ -21,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Liminal.Auth.EntityFrameworkCore\Liminal.Auth.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\HomeSchool.Core\HomeSchool.Core.csproj" />
       <ProjectReference Include="..\Liminal.Auth\Liminal.Auth.csproj" />
     </ItemGroup>
 

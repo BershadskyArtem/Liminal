@@ -14,7 +14,7 @@ public class UserClaim
         return new Claim(ClaimType, ClaimValue);
     }
 
-    public static UserClaim FromClaim(Claim claim)
+    public static UserClaim FromClaim (Claim claim)
     {
         return new UserClaim()
         {

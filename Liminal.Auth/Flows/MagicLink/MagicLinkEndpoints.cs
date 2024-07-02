@@ -72,13 +72,7 @@ public static class MagicLinkEndpoints
         }
         
         
-        var result = await flow.SendLink(req.Email, () =>
-        {
-            var user = Activator.CreateInstance<TUser>();
-            user.Email = req.Email;
-            user.Id = Guid.NewGuid();
-            return user;
-        });
+        var result = await flow.SendLink(req.Email);
 
         if (result)
         {
