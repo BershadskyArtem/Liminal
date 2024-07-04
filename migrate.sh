@@ -1,1 +1,1 @@
-dotnet ef migrations add AddedIdentity --startup-project src/MinimalAuth.Api --project src/MinimalAuth.Stores.EntityFramework --context MinimalAuthDbContext --output-dir Migrations
+dotnet ef migrations add $1 --startup-project HomeSchool.Api --project HomeSchool.Core --context ApplicationDbContext --output-dir Migrations

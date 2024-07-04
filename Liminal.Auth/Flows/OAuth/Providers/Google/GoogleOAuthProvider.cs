@@ -1,15 +1,18 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 namespace Liminal.Auth.Flows.OAuth.Providers.Google;
+
+// Sources
+// https://www.oauth.com/oauth2-servers/signing-in-with-google/verifying-the-user-info/
+// https://developers.google.com/identity/openid-connect/openid-connect#obtainuserinfo
+// Appwrite github.
 
 public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAuthProviderOptions options) : IOAuthProvider
 {
     // TODO: Make OAuthFlow additional checks for user id because apparently
     // Email of the user from google can change.
-    // https://developers.google.com/identity/openid-connect/openid-connect#obtainuserinfo
     
     public string Name { get; set; } = "google";
     
@@ -39,50 +42,37 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
 
         try
         {
-            var req = new GoogleOAuthRequest();
+            var req = new GoogleOAuthRequest()
+            {
+                ClientId = options.ClientId,
+                ClientSecret = options.ClientSecret,
+                Code = code, 
+                RedirectUri = options.RedirectUri,
+                GrantType = "authorization_code"
+            };
 
             var response = await client.PostAsJsonAsync(TokenEndpoint, req);
-            var tokenResponse = await response.Content.ReadFromJsonAsync<GoogleTokenResponse>();
-
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                return OAuthSignInResult.Failure($"Got success code {response.StatusCode}");
+                return OAuthSignInResult.Failure($"Google OAuth token request fail. Got success code {response.StatusCode}");
             }
             
+            var tokenResponse = await response.Content.ReadFromJsonAsync<GoogleTokenResponse>();
             if (tokenResponse is null)
             {
-                return OAuthSignInResult.Failure("Cannot get oauth tokens");
+                return OAuthSignInResult.Failure("Cannot get oauth tokens for google.");
             }
             
             var accessToken = tokenResponse.AccessToken;
+            var userInfo = await GetUserInfoAsync(client, accessToken);
             
-            // We do not do token validation here because i do not want to.
-            // https://www.oauth.com/oauth2-servers/signing-in-with-google/verifying-the-user-info/
-            
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-            var userInfoResponse = await client.GetAsync(UserInfoEndpoint);
-            
-            if (userInfoResponse.StatusCode != HttpStatusCode.OK)
-            {
-                return OAuthSignInResult.Failure($"Cannot get user info for Google. Got status code: {userInfoResponse.StatusCode}");
-            }
-            
-            var userInfo = await response.Content.ReadFromJsonAsync<GoogleUserInfoResponse>();
-
-            if (userInfo is null)
-            {
-                return OAuthSignInResult.Failure("Cannot get user info");
-            }
-
             var expiryDate = DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+            var refreshTokenValidUntil = DateTimeOffset.UtcNow.AddMonths(6);
             
             return OAuthSignInResult.Success(
-                tokenResponse.AccessToken, 
-                userInfo.Email, 
-                Name,
-                new List<Claim>(),
-                expiryDate,
-                tokenResponse.RefreshToken);
+                TokenSet.Create(tokenResponse.AccessToken, expiryDate, tokenResponse.RefreshToken, refreshTokenValidUntil),
+                UserInfo.Create(userInfo.Email, userInfo.Username, userInfo.IsVerified), 
+                Name);
         }
         finally
         {
@@ -90,6 +80,102 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
         }
     }
 
+    private async Task<GoogleUser> GetUserInfoAsync(HttpClient client, string accessToken)
+    {
+        var userResponse = await client.GetAsync($"https://www.googleapis.com/oauth2/v3/userinfo?access_token={accessToken}");
+
+        if (userResponse.StatusCode != HttpStatusCode.OK)
+        {
+            throw new Exception("Cannot get Google user");
+        }
+
+        var user = await userResponse.Content.ReadFromJsonAsync<GoogleUserResponse>();
+
+        if (user is null)
+        {
+            throw new Exception("Cannot parse user from Google");
+        }
+
+        var googleUser = new GoogleUser()
+        {
+            Email = user.Email,
+            IsVerified = user.IsVerified,
+            Username = user.Username ?? string.Empty,
+        };
+
+        return googleUser;
+    }
+
+    public async Task<TokenSet> RefreshTokenAsync(string refreshToken)
+    {
+        var client = httpClientFactory.CreateClient();
+
+        try
+        {
+            var req = new GoogleRefreshRequest()
+            {
+                RefreshToken = refreshToken,
+                ClientId = options.ClientId,
+                ClientSecret = options.ClientSecret,
+            };
+
+            var refreshResponse = await client.PostAsJsonAsync("https://oauth2.googleapis.com/token?", req);
+
+            if (refreshResponse.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("Cannot refresh Google token");
+            }
+
+            var refresh = await refreshResponse.Content.ReadFromJsonAsync<GoogleRefreshResponse>();
+
+            if (refresh is null)
+            {
+                throw new Exception("Cannot parse google refresh response");
+            }
+
+            var expiryDate = DateTimeOffset.UtcNow.AddSeconds(refresh.Expires);
+            return TokenSet.Create(refresh.AccessToken, expiryDate);
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+        finally
+        {
+            client.Dispose();
+        }
+    }
+
+    private class GoogleUser
+    {
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public bool IsVerified { get; set; }
+    }
+
+    private record GoogleRefreshResponse
+    {
+        [JsonPropertyName("access_token")] public string AccessToken { get; set; }
+        [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; }
+        [JsonPropertyName("token_type")] public string TokenType { get; set; }
+        [JsonPropertyName("expires")] public int Expires { get; set; }
+    }
+
+    private record GoogleRefreshRequest
+    {
+        [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; }
+        [JsonPropertyName("client_id")] public string ClientId { get; set; }
+        [JsonPropertyName("client_secret")] public string ClientSecret { get; set; }
+        [JsonPropertyName("grant_type")] public string GrantType { get; set; } = "refresh_token";
+    }
+    
+    private record GoogleUserResponse
+    {
+        [JsonPropertyName("email")] public string Email { get; set; } = default!;
+        [JsonPropertyName("name")] public string? Username { get; set; }
+        [JsonPropertyName("email_verified")] public bool IsVerified { get; set; }
+    }
+    
     private record GoogleOAuthRequest
     {
         [JsonPropertyName("client_id")] public string ClientId { get; init; } = default!;
@@ -98,14 +184,14 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
         [JsonPropertyName("grant_type")] public string GrantType { get; set; } = default!;
         [JsonPropertyName("redirect_uri")] public string RedirectUri { get; init; } = default!;
     }
-
+    
     private record GoogleTokenResponse
     {
         [JsonPropertyName("access_token")] public string AccessToken { get; set; } = default!;
         [JsonPropertyName("scope")] public string Scope { get; set; } = default!;
         [JsonPropertyName("token_type")] public string TokenType { get; set; } = default!;
-        [JsonPropertyName("token_type")] public int ExpiresIn { get; set; } = 3920;
-        [JsonPropertyName("token_type")] public string RefreshToken { get; set; } = default!;
+        [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; } = 3920;
+        [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; } = default!;
     }
 
     private record GoogleUserInfoResponse
@@ -115,7 +201,6 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
     }
     
     private string? _scopes = null;
-    public static readonly string TokenEndpoint = "https://oauth2.googleapis.com/token";
-    public static readonly string UserInfoEndpoint = " https://www.googleapis.com/oauth2/v3/userinfo";
-
+    private static readonly string TokenEndpoint = "https://oauth2.googleapis.com/token";
+    private static readonly string UserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=";
 }

@@ -44,7 +44,7 @@ public class OAuthFlow<TUser>(
             targetUserId = parsedState.TargetUserId;
         }
         
-        var existingAccount = await accountStore.GetByProviderAsync(signInResult.Email, providerName);
+        var existingAccount = await accountStore.GetByProviderAsync(signInResult.User.Email, providerName);
         TUser? existingUser = null;
         // If account does not exist
         // Then we get the user.
@@ -60,8 +60,17 @@ public class OAuthFlow<TUser>(
                     return CallbackResult<TUser>.Failure("No user to link.");
                 }
 
+                if (!existingUser.IsConfirmed)
+                {
+                    return CallbackResult<TUser>.Failure("Cannot connect to existing user because user is not confirmed");
+                }
+
                 existingAccount =
-                    Account.CreateConfirmed($"{Name}_{providerName}", existingUser.Email, existingUser.Id);
+                    Account.Create(
+                        $"{Name}_{providerName}", 
+                        existingUser.Email, 
+                        signInResult.User.IsVerified,
+                        existingUser.Id);
 
                 var result = await accountStore.AddAsync(existingAccount, true);
 
@@ -81,7 +90,7 @@ public class OAuthFlow<TUser>(
             // Ignore that. May send confirmation email later?
             
             // If no target user.
-            existingUser ??= await userStore.GetByEmailAsync(signInResult.Email);
+            existingUser = await userStore.GetByEmailAsync(signInResult.User.Email);
             
             // If user does not exist or is not confirmed
             // then we create new user
@@ -89,17 +98,27 @@ public class OAuthFlow<TUser>(
             if (existingUser is null || !existingUser.IsConfirmed)
             {
                 // Create new user for not confirmed account.
-                existingUser = userFactory.CreateConfirmed(signInResult.Email);
+                if (signInResult.User.IsVerified)
+                {
+                    existingUser = userFactory.CreateConfirmed(signInResult.User.Email, signInResult.User.UserName);
+                }
+                else
+                {
+                    existingUser = userFactory.CreateUnConfirmed(signInResult.User.Email, signInResult.User.UserName);    
+                }
 
                 await userStore.AddAsync(existingUser, true);
             }
 
-            existingAccount = Account.CreateConfirmed($"{Name}_{providerName}", existingUser.Email, existingUser.Id);
-            // Link account and the user. 
-            existingAccount.UserId = existingUser.Id;
-            await accountStore.UpdateAsync(existingAccount, true);
-            
-            await accountStore.AddAsync(existingAccount!, true);
+            existingAccount = Account.Create($"{Name}_{providerName}", existingUser.Email, signInResult.User.IsVerified, existingUser.Id);
+            await accountStore.AddAsync(existingAccount, true);
+
+            await StoreTokens(signInResult, existingAccount);
+
+            return CallbackResult<TUser>.Success(
+                existingUser.Email, 
+                existingUser.ToPrincipal(), 
+                signInResult?.RedirectAfter);
         }
         
         // We do not care if the existingAccount already has userId. 
@@ -117,7 +136,6 @@ public class OAuthFlow<TUser>(
         {
             throw new Exception("Existing user is null. Account is orphan!!!");
         }
-
         
         // If we did not try intentionally connect accounts to 
         // not confirmed user
@@ -127,7 +145,6 @@ public class OAuthFlow<TUser>(
         // I am going to connect and confirm then.
         if (!existingUser.IsConfirmed && targetUserId is not null)
         {
-           
             // It means that the account tries to link to not confirmed user
             // Do not allow that.
             return CallbackResult<TUser>.Failure("Cannot link to a not confirmed user.");    
@@ -159,23 +176,76 @@ public class OAuthFlow<TUser>(
     {
         var refreshToken = await passwordStore.GetByAccountIdAsync(accountId, "refresh_token");
         var accessToken = await passwordStore.GetByAccountIdAsync(accountId, "access_token");
-
-        return new OAuthTokensResult()
+        
+        if (accessToken is null)
         {
-            AccessToken = accessToken?.TokenValue,
-            RefreshToken = refreshToken?.TokenValue
-        };
+            return OAuthTokensResult.Failure("Cannot find access token");
+        }
+
+        var providerName = accessToken.Provider;
+        
+        if (accessToken.ValidUntil > DateTimeOffset.UtcNow)
+        {
+            if (refreshToken is null)
+            {
+                return OAuthTokensResult.Failure("Session expired and could find refresh token");
+            }
+            
+            var provider = providersCollection.GetProvider(accessToken.Provider);
+
+            var newTokenSet = await provider.RefreshTokenAsync(refreshToken.TokenValue);
+
+            await StoreTokens(newTokenSet, providerName, accountId);
+            return OAuthTokensResult.Success(newTokenSet.AccessToken, newTokenSet.RefreshToken);
+        }
+
+        return OAuthTokensResult.Success(accessToken.TokenValue, refreshToken?.TokenValue);
     }
+    
+    private async Task StoreTokens(TokenSet tokens, string provider, Guid accountId)
+    {
+        // Store tokens and get user roles and claims
+        if (tokens.RefreshToken is not null)
+        {
+            await SetTokenAsync(
+                provider,
+                "refresh_token", 
+                tokens.RefreshToken, 
+                accountId, 
+                tokens.AccessTokenValidUntil);
+        }
+        
+        await SetTokenAsync(
+            provider,
+            "access_token", 
+            tokens.AccessToken,
+            accountId, 
+            tokens.AccessTokenValidUntil);
+
+        await passwordStore.SaveChangesAsync();
+    }
+
 
     private async Task StoreTokens(OAuthSignInResult signInResult, Account account)
     {
+        var tokens = signInResult.Tokens;
         // Store tokens and get user roles and claims
-        if (signInResult.RefreshToken is not null)
+        if (tokens.RefreshToken is not null)
         {
-            await SetTokenAsync(signInResult.Provider, "refresh_token", signInResult.RefreshToken, account.Id, signInResult.AccessTokenValidUntil);
+            await SetTokenAsync(
+                signInResult.Provider,
+                "refresh_token", 
+                tokens.RefreshToken, 
+                account.Id, 
+                tokens.AccessTokenValidUntil);
         }
         
-        await SetTokenAsync(signInResult.Provider, "access_token", signInResult.AccessToken, account.Id, signInResult.AccessTokenValidUntil);
+        await SetTokenAsync(
+            signInResult.Provider,
+            "access_token", 
+            tokens.AccessToken,
+            account.Id, 
+            tokens.AccessTokenValidUntil);
 
         await passwordStore.SaveChangesAsync();
     }

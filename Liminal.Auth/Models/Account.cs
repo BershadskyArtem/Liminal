@@ -32,7 +32,7 @@ public class Account
         return Create(provider, email, false, linkedUserId);
     }
     
-    protected static Account Create(string provider, string email, bool isConfirmed, Guid linkedUserId)
+    public static Account Create(string provider, string email, bool isConfirmed, Guid linkedUserId)
     {
         return new Account()
         {

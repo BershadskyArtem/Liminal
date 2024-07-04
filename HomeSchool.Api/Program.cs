@@ -1,6 +1,7 @@
 using System.Text;
 using HomeSchool.Api;
 using HomeSchool.Api.Features.Reporting.Violations;
+using HomeSchool.Core.Attachments.Domain;
 using HomeSchool.Core.Data;
 using HomeSchool.Core.Identity;
 using HomeSchool.Core.Reporting;
@@ -10,11 +11,15 @@ using Liminal.Auth.Extensions;
 using Liminal.Auth.Flows.MagicLink;
 using Liminal.Auth.Flows.OAuth;
 using Liminal.Auth.Flows.OAuth.Providers.Github;
+using Liminal.Auth.Flows.OAuth.Providers.Google;
 using Liminal.Auth.Flows.Password;
 using Liminal.Auth.Jwt;
 using Liminal.Auth.Requirements;
 using Liminal.Mail;
 using Liminal.Mail.Implementations;
+using Liminal.Storage;
+using Liminal.Storage.EntityFrameworkCore;
+using Liminal.Storage.S3;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
@@ -23,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddData();
+builder.Services.AddData(builder.Configuration);
 builder.Services.AddReporting();
 
 builder.Services.AddJwtAuth(builder.Configuration);
@@ -32,6 +37,22 @@ builder.Services.AddAuthorization(cfg =>
     cfg.AddPolicy(PolicyDefaults.AdminName, options =>
     {
         options.RequireRole(RoleDefaults.Admin, RoleDefaults.SuperAdmin);
+    });
+    
+    cfg.AddPolicy(PolicyDefaults.PaidAndAdminName, options =>
+    {
+        options.RequireRole(RoleDefaults.Medium, RoleDefaults.Premium, RoleDefaults.Admin, RoleDefaults.SuperAdmin);
+    });
+});
+
+
+builder.Services.AddLiminalFileStore(options =>
+{
+    options.UseEntityFrameworkStores<ApplicationDbContext, ApplicationAttachment>();
+   
+    options.UseS3Disk("main", s3Options =>
+    {
+        
     });
 });
 
@@ -67,6 +88,13 @@ builder.Services.AddLiminalAuth<ApplicationUser>(options =>
                 gh.ClientId = builder.Configuration["Liminal:Auth:OAuth:Github:ClientId"] ?? throw new NullReferenceException("ClientId for github is null");
                 gh.ClientSecret = builder.Configuration["Liminal:Auth:OAuth:Github:ClientSecret"] ?? throw new NullReferenceException("Client secret for github is null");
             });
+
+            oAuthOptions.AddGoogle(go =>
+            {
+                go.ClientId = builder.Configuration["Liminal:Auth:OAuth:Google:ClientId"] ?? throw new NullReferenceException("ClientId for google is null");
+                go.ClientSecret = builder.Configuration["Liminal:Auth:OAuth:Google:ClientSecret"] ?? throw new NullReferenceException("ClientSecret for google is null");
+                go.RedirectUri = builder.Configuration["Liminal:Auth:OAuth:Google:RedirectUri"] ?? throw new NullReferenceException("RedirectUri for google is null");
+            });
         });
 
     options.AddEntityFrameworkStores<ApplicationDbContext, ApplicationUser>();
@@ -92,6 +120,7 @@ app.MapPassword<ApplicationUser>();
 app.MapMagic<ApplicationUser>();
 app.MapOAuth<ApplicationUser>();
 app.MapLinking<ApplicationUser>();
+app.MapTokenEndpoints<ApplicationUser>();
 
 app.MapReport<ApplicationUser>();
 

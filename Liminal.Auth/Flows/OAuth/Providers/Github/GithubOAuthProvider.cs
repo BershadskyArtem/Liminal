@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 namespace Liminal.Auth.Flows.OAuth.Providers.Github;
@@ -30,8 +29,15 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
                 Code = code,
                 RedirectUri = options.RedirectUrl
             };
+            
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             var response = await httpClient.PostAsJsonAsync($"https://github.com/login/oauth/access_token", request);
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("Cannot get access_token for github user.");
+            }
+            
             var ghResponse = await response.Content.ReadFromJsonAsync<GithubTokenResponse>();
 
             if (ghResponse is null || ghResponse?.AccessToken is null)
@@ -41,35 +47,42 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
 
             var userInfo = await GetUserInfo(httpClient, ghResponse.AccessToken);
 
-            return OAuthSignInResult.Success(ghResponse.AccessToken, userInfo.Email, Name,
-            [
-                new Claim("sub", userInfo.ExternalId),
-                new Claim("pic", userInfo.AvatarUrl),
-                new Claim("email", userInfo.Email)
-            ],null, null);
+            return OAuthSignInResult.Success(
+                TokenSet.Create(ghResponse.AccessToken, DateTimeOffset.MaxValue, null, null), 
+                OAuth.UserInfo.Create(userInfo.Email, userInfo.UserName, userInfo.IsVerified),
+                Name);
         }
         finally
         {
             httpClient.Dispose();
         }
     }
-    
-    
-    private async Task<UserInfo> GetUserInfo(HttpClient httpClient, string token)
+
+    public Task<TokenSet> RefreshTokenAsync(string refreshToken)
+    {
+        throw new NotImplementedException("Github does not support token refreshing.");
+    }
+
+    private async Task<GithubUser> GetUserInfo(HttpClient httpClient, string token)
     {
         httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
         httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
         httpClient.DefaultRequestHeaders.Add("User-Agent", "Minimal-Auth-Test");
         
-        var result = await httpClient.GetAsync("https://api.github.com/user");
+        var userResponse = await httpClient.GetAsync("https://api.github.com/user");
 
-        if (result.StatusCode != HttpStatusCode.OK)
+        if (userResponse.StatusCode != HttpStatusCode.OK)
         {
             throw new Exception("Unable to get github user info");
         }
 
-        var ghUser = await result.Content.ReadFromJsonAsync<GithubUserResponse>();
+        var user = await userResponse.Content.ReadFromJsonAsync<GithubUserResponse>();
+
+        if (user is null)
+        {
+            throw new Exception("Cannot get info user from Github.");
+        }
         
         var emailsResponse = await httpClient.GetAsync("https://api.github.com/user/emails");
 
@@ -78,37 +91,38 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
             throw new Exception("Unable to get github user info");
         }
 
-        var emailsResponses = await emailsResponse.Content.ReadFromJsonAsync<List<GithubEmailResponse>>();
+        var emails = await emailsResponse.Content.ReadFromJsonAsync<List<GithubEmailResponse>>();
 
-        if (emailsResponses is null || emailsResponses.Count == 0)
+        if (emails is null || emails.Count == 0)
         {
             throw new Exception("Github account is not activated.");
         }
 
-        var emailResponse = emailsResponses.FirstOrDefault(r => r.IsPrimary);
+        var verifiedEmails = emails.Where(r => r.IsVerified).ToList();
 
-        if (emailResponse is null)
+        GithubEmailResponse? primaryVerifiedEmail = verifiedEmails.FirstOrDefault(e => e.IsPrimary);
+        GithubEmailResponse? anyVerifiedEmail = verifiedEmails.FirstOrDefault();
+        
+        if (primaryVerifiedEmail is null && anyVerifiedEmail is null)
         {
-            throw new Exception("WTF? No primary email in github?");
+            throw new Exception("No Github emails found.");
         }
 
-        var userInfo = new UserInfo()
+        var githubUser = new GithubUser()
         {
-            Email = emailResponse.Email,
-            ExternalId = ghUser.Id.ToString(),
-            AvatarUrl = ghUser.AvatarUrl,
-            Provider = "github"
+            UserName = user!.Name ?? string.Empty,
+            Email = primaryVerifiedEmail?.Email ?? anyVerifiedEmail?.Email!,
+            IsVerified = primaryVerifiedEmail?.IsVerified ?? anyVerifiedEmail?.IsVerified ?? false,
         };
-
-        return userInfo;
+        
+        return githubUser;
     }
 
-    private record UserInfo
+    private class GithubUser
     {
-        public string Email { get; set; }
-        public string ExternalId { get; set; }
-        public string AvatarUrl { get; set; }
-        public string Provider { get; set; }
+        public string Email { get; set; } = default!;
+        public bool IsVerified { get; set; }
+        public string UserName { get; set; } = string.Empty;
     }
     
     private record GithubTokenRequest

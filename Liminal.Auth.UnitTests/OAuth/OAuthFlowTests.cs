@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Flows.OAuth;
@@ -75,7 +72,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims,  refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -84,7 +81,7 @@ public class OAuthFlowTests
                 Task.FromResult<Account?>(null));
 
         Account? createdAccount = null;
-        _accountStore.UpdateAsync(Arg.Any<Account>(), true)
+        _accountStore.AddAsync(Arg.Any<Account>(), true)
             .Returns(true)
             .AndDoes(info =>
             {
@@ -127,7 +124,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -183,7 +180,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -226,7 +223,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -273,7 +270,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -312,7 +309,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -351,7 +348,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 
@@ -392,7 +389,7 @@ public class OAuthFlowTests
         _stateGenerator.ParseState(EncodedState).Returns(state);
         _provider.SignInOAuthAsync(Code, EncodedState).Returns(
             Task.FromResult(
-                OAuthSignInResult.Success(AccessToken, Email1, Scheme, Claims, refreshToken: RefreshToken, validUntil:null)
+                OAuthSignInResult.Success(TokenSet.Create(AccessToken, DateTimeOffset.UtcNow), UserInfo.Create(Email1, Email1, true), Scheme )
             ));
         _proivders.GetProvider(Scheme).Returns(_provider);
 

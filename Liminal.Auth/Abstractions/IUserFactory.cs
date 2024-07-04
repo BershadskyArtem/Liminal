@@ -6,6 +6,6 @@ public interface IUserFactory<out TUser>
     where TUser : AbstractUser
 
 {
-    public TUser CreateConfirmed(string email);
-    public TUser CreateUnConfirmed(string email);
+    public TUser CreateConfirmed(string email, string? userName = null);
+    public TUser CreateUnConfirmed(string email, string? userName = null);
 }
