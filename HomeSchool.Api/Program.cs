@@ -22,11 +22,40 @@ using Liminal.Storage.EntityFrameworkCore;
 using Liminal.Storage.S3;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c => 
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Project Home School Api",
+        Version = "v1"
+    });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Cookie,
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 builder.Services.AddData(builder.Configuration);
 builder.Services.AddReporting();
@@ -102,6 +131,23 @@ builder.Services.AddLiminalAuth<ApplicationUser>(options =>
 
 builder.Services.AddMailer<ConsoleMailer>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("main-cors", policy =>
+    {
+        policy
+            .AllowAnyMethod()
+            .WithOrigins("https://github.com");
+        
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithOrigins("http://localhost:5173");
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -111,6 +157,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     IdentityModelEventSource.ShowPII = true;
 }
+
+app.UseCors("main-cors");
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseAuthentication();

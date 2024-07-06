@@ -28,25 +28,4 @@ public class FileAttachment : AuditableEntity
             BecameNotTransientAt = DateTimeOffset.UtcNow;    
         }
     }
-
-    public FileAttachment(string externalId, 
-        string diskName, 
-        string fileName, 
-        string mimeType,
-        string extension, 
-        long size,
-        bool isTransient,
-        Guid? userId)
-    {
-        // ReSharper disable once VirtualMemberCallInConstructor
-        Id = Guid.NewGuid();
-        ExternalId = externalId;
-        DiskName = diskName;
-        MimeType = mimeType;
-        Extension = extension;
-        FileName = fileName;
-        Size = size;
-        IsTransient = isTransient;
-        UserId = userId;
-    }
 }

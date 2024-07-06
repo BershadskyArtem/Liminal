@@ -16,22 +16,11 @@ public class JwtTokenGenerator<TUser>(
 {
     public string Name { get; } = JwtDefaults.Scheme;
 
-    public async Task<GenerateTokenResult> GenerateToken(ClaimsPrincipal principal)
+    public async Task<GenerateTokenResult> GenerateToken(ClaimsPrincipal principal, bool save = true)
     {
-        var signingCredentials = new SigningCredentials(options.CryptoKey, SecurityAlgorithms.HmacSha256);
-
         var expires = DateTimeOffset.UtcNow.Add(options.AccessTokenLifetime);
-
-        var claims = principal.Claims;
-
-        var tokenOptions = new JwtSecurityToken(
-            signingCredentials: signingCredentials,
-            // TODO: This is a very dirty hack. Remove it later.
-            // This is caused by time differences. UTC -> Moscow = 3 hours.
-            expires: DateTime.UtcNow.Add(options.AccessTokenLifetime).AddHours(3),
-            claims: claims);
         
-        var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+        var token = SignJwt(principal, expires);
 
         var refreshToken = CryptoUtils.GenerateRandomString(32);
 
@@ -49,10 +38,27 @@ public class JwtTokenGenerator<TUser>(
 
         var tokenSet = UserToken.Create(userId, token, expires, refreshToken, DateTimeOffset.UtcNow.AddDays(60));
 
-        await userTokenStore.AddAsync(tokenSet, true);
+        await userTokenStore.AddAsync(tokenSet, save);
         
         return GenerateTokenResult
             .Success(token, refreshToken, expires.DateTime.ToUniversalTime(), (int)options.AccessTokenLifetime.TotalSeconds, Name);
+    }
+
+    private string SignJwt(ClaimsPrincipal principal, DateTimeOffset expires)
+    {
+        var signingCredentials = new SigningCredentials(options.CryptoKey, SecurityAlgorithms.HmacSha256);
+        
+        var claims = principal.Claims;
+
+        var tokenOptions = new JwtSecurityToken(
+            signingCredentials: signingCredentials,
+            // TODO: This is a very dirty hack. Remove it later.
+            // This is caused by time differences. UTC -> Moscow = 3 hours.
+            expires: DateTime.UtcNow.Add(options.AccessTokenLifetime).AddHours(3),
+            claims: claims);
+        
+        var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+        return token;
     }
 
     public async Task<GenerateTokenResult> RefreshToken(string refreshToken)
@@ -73,9 +79,11 @@ public class JwtTokenGenerator<TUser>(
 
         var principal = user.ToPrincipal();
 
-        var token = await GenerateToken(principal);
+        var token = await GenerateToken(principal, false);
 
-        await userTokenStore.RemoveAsync(tokenSet, true);
+        await userTokenStore.RemoveAsync(tokenSet);
+
+        await userTokenStore.SaveChangesAsync();
 
         return token;
     }

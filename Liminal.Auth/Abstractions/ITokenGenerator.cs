@@ -14,7 +14,7 @@ public interface ITokenGenerator
     /// </summary>
     /// <param name="principal">The user's <see cref="ClaimsPrincipal"/> to generate access token from. </param>
     /// <returns>Task with the token result in it.</returns>
-    public Task<GenerateTokenResult> GenerateToken(ClaimsPrincipal principal);
+    public Task<GenerateTokenResult> GenerateToken(ClaimsPrincipal principal, bool save = true);
     
     /// <summary>
     /// Refreshes access token using refresh token. 

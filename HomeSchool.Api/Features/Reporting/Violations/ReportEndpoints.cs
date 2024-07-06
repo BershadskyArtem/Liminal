@@ -148,7 +148,7 @@ public static class ReportEndpoints
     }
     
     // Update 
-    public static async Task<Results<Ok, NotFound>> MapUpdateReport<TUser>(
+    public static async Task<Results<Ok, NotFound, UnauthorizedHttpResult>> MapUpdateReport<TUser>(
         [FromRoute] Guid id,
         [FromBody] UpdateReportRequest req,
         [FromServices] IAuthContext<TUser> authContext,
@@ -166,7 +166,7 @@ public static class ReportEndpoints
                 req.Resolve, 
                 req.SendNotification);
 
-        var response = result.Match<Results<Ok, NotFound>>(
+        var response = result.Match<Results<Ok, NotFound, UnauthorizedHttpResult>>(
             _ => TypedResults.Ok(),
             _ => TypedResults.NotFound());
 
@@ -174,7 +174,7 @@ public static class ReportEndpoints
     }
     
     // Delete
-    public static async Task<Results<NoContent, NotFound>> MapDeleteReport<TUser>(
+    public static async Task<Results<NoContent, NotFound, UnauthorizedHttpResult>> MapDeleteReport<TUser>(
         [FromRoute] Guid id,
         [FromServices] IAuthContext<TUser> authContext,
         [FromServices] IReportingService reportingService) 
@@ -185,7 +185,7 @@ public static class ReportEndpoints
 
         ErrorOr<bool> result = await reportingService.DeleteAsync(id);
 
-        var response = result.Match<Results<NoContent, NotFound>>(
+        var response = result.Match<Results<NoContent, NotFound, UnauthorizedHttpResult>>(
             (_) => TypedResults.NoContent(),
             _ => TypedResults.NotFound());
 
@@ -234,7 +234,7 @@ public static class ReportEndpoints
         }
     }
     
-    public static async Task<Results<Ok<GetReportResponse>, NotFound>> MapGetById<TUser>(
+    public static async Task<Results<Ok<GetReportResponse>, NotFound, UnauthorizedHttpResult>> MapGetById<TUser>(
         [FromRoute] Guid id,
         [FromServices] IAuthContext<TUser> authContext,
         [FromServices] ApplicationDbContext context) 
@@ -276,7 +276,7 @@ public static class ReportEndpoints
         public Guid? ResolvedBy { get; set; }
     }
     
-    public static async Task<Results<Ok<List<GetReportResponse>>, NotFound>> MapGetByFilter<TUser>(
+    public static async Task<Results<Ok<List<GetReportResponse>>, NotFound, UnauthorizedHttpResult>> MapGetByFilter<TUser>(
         [AsParameters] GetReportsByFilterRequest req,
         [FromServices] IAuthContext<TUser> authContext,
         [FromServices] ApplicationDbContext context) 

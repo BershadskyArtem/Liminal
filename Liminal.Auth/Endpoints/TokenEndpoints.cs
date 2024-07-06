@@ -18,6 +18,7 @@ public static class TokenEndpoints
     {
         app.MapRefreshToken();
         app.MapMe<TUser>();
+        app.MapSignOut();
         
         return app;
     }
@@ -54,6 +55,8 @@ public static class TokenEndpoints
 
         var result = await context.RefreshAsyncLiminal();
 
+        Console.WriteLine(result.IsSuccess);
+        
         if (result.IsSuccess)
         {
             return TypedResults.Ok(result);
@@ -125,4 +128,24 @@ public static class TokenEndpoints
         return TypedResults.Ok(response);
     }
     
+    public static void MapSignOut(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("api/auth/logout", SignOut)
+            .AllowAnonymous()
+            .WithOpenApi(options =>
+            {
+                options.Summary = "Sign out user";
+                options.Description = "Sign out user. Deletes cookie and refresh token";
+                
+                return options;
+            });
+    }
+
+    public static async Task<Ok> SignOut(
+        [FromQuery] string tokenType,
+        HttpContext context)
+    {
+        await context.SignOutLiminalAsync();
+        return TypedResults.Ok();
+    }
 }
