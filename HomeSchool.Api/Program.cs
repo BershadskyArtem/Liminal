@@ -15,6 +15,7 @@ using Liminal.Auth.Flows.OAuth.Providers.Google;
 using Liminal.Auth.Flows.Password;
 using Liminal.Auth.Jwt;
 using Liminal.Auth.Requirements;
+using Liminal.Common;
 using Liminal.Mail;
 using Liminal.Mail.Implementations;
 using Liminal.Storage;
@@ -131,6 +132,15 @@ builder.Services.AddLiminalAuth<ApplicationUser>(options =>
 
 builder.Services.AddMailer<ConsoleMailer>();
 
+var frontendConfig = builder.Services.AddLiminalConfig(options =>
+{
+    options.DefaultRedirectUrl = builder.Configuration["Liminal:DefaultRedirectUrl"] 
+                          ?? throw new NullReferenceException("DefaultRedirectUrl not present in config");
+    
+    options.FrontendHost = builder.Configuration["Liminal:FrontendHost"] 
+                                 ?? throw new NullReferenceException("Frontend url is not present in config");
+});
+
 
 builder.Services.AddCors(options =>
 {
@@ -138,13 +148,27 @@ builder.Services.AddCors(options =>
     {
         policy
             .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
             .WithOrigins("https://github.com");
+        
+        policy
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithOrigins("https://google.com");
+        
+        policy
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithOrigins("https://zoom.com");
         
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
-            .WithOrigins("http://localhost:5173");
+            .WithOrigins(frontendConfig.FrontendHost);
     });
 });
 

@@ -63,7 +63,7 @@ public class MagicLinkFlow<TUser>(
         await passwordStore.AddAsync(password, true);
         
         var sent = await mailer.SendEmailAsync(email, $"""
-                                     Hello, your confirmation link is {options.ActivateUrl}/{token}
+                                     Hello, your confirmation link is {options.ActivateUrl}?code={token}
                                      """);
         return sent;
     }

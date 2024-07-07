@@ -1,6 +1,7 @@
 using Liminal.Auth.Extensions;
 using Liminal.Auth.Jwt;
 using Liminal.Auth.Models;
+using Liminal.Common.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -58,10 +59,12 @@ public static class OAuthEndpoints
     
     public static async Task<RedirectHttpResult> RedirectToProvider<TUser>(
         [FromRoute] string provider,
-        [FromServices] OAuthFlow<TUser> flow)
+        [FromQuery] string? redirectAfter,
+        [FromServices] OAuthFlow<TUser> flow,
+        [FromServices] FrontendOptions config)
         where TUser : AbstractUser
     {
-        var result = await flow.GetRedirectUrl(provider);
+        var result = await flow.GetRedirectUrl(provider, redirectAfter ?? config.DefaultRedirectUrl);
         return TypedResults.Redirect(result);
     }
     

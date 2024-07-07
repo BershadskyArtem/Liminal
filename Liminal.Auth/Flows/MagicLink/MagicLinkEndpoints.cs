@@ -90,12 +90,11 @@ public static class MagicLinkEndpoints
         });
     }
     
-    
     public static IEndpointRouteBuilder MapActivateMagic<TUser>(this IEndpointRouteBuilder app)
         where TUser : AbstractUser
     {
         app
-            .MapGet("api/auth/magic/{id}", AuthenticateMagic<TUser>)
+            .MapGet("api/auth/magic", AuthenticateMagic<TUser>)
             .AllowAnonymous()
             .WithOpenApi(options =>
             {
@@ -109,14 +108,19 @@ public static class MagicLinkEndpoints
         return app;
     }
 
-    private static async Task<Results<Ok<GenerateTokenResult>, BadRequest<GenerateTokenResult>>> 
+    private static async Task<Results<Ok<GenerateTokenResult>, BadRequest<GenerateTokenResult>, UnauthorizedHttpResult>> 
         AuthenticateMagic<TUser>(
-        [FromRoute] string id,
+        [FromQuery] string code,
         [FromServices] MagicLinkFlow<TUser> flow,
         HttpContext context)
         where TUser : AbstractUser
     {
-        var result = await flow.ActivateAsync(id);
+        var result = await flow.ActivateAsync(code);
+
+        if (!result.IsSuccess)
+        {
+            return TypedResults.Unauthorized();
+        }
 
         var signInResult = await context.SignInAsyncLiminal(result.Principal, JwtDefaults.Scheme);
 
