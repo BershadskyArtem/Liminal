@@ -197,4 +197,8 @@ app.MapTokenEndpoints<ApplicationUser>();
 
 app.MapReport<ApplicationUser>();
 
+using var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+context.Database.EnsureCreated();
+
 app.Run();
