@@ -11,7 +11,7 @@ public class LiminalStorageBuilder(IServiceCollection services)
         where TDisk : class, IDisk 
         where TOptions : class
     {
-        Services.AddKeyedScoped<TDisk>(name, (provider, _) => factory(provider, name));
+        Services.AddKeyedScoped<IDisk, TDisk>(name, (provider, _) => factory(provider, name));
         Services.AddKeyedSingleton(typeof(TOptions), name, options);
 
         return this;

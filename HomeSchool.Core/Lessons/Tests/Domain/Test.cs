@@ -21,7 +21,7 @@ public class TestEntityTypeConfiguration : IEntityTypeConfiguration<Test>
         builder
             .HasMany(t => t.Questions)
             .WithMany(q => q.Tests)
-            .UsingEntity("TestsQuestionsTable");
+            .UsingEntity("TestsQuestions");
 
         builder
             .HasMany(t => t.TestAttempts)

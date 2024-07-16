@@ -13,10 +13,12 @@ public class PolicyDefaults
         RoleDefaults.Admin,
         RoleDefaults.SuperAdmin
     ];
+    
     public static readonly string PaidAndAdminName = "paidandadmin";
 
     public static readonly List<string> SuperAdmin = [RoleDefaults.SuperAdmin];
     public static readonly string SuperAdminName = "superadmin";
 
 
+    public static string ConfirmedAccount { get; set; } = "confirmedaccount";
 }

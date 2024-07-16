@@ -1,5 +1,6 @@
 using System.Text;
 using HomeSchool.Api;
+using HomeSchool.Api.Features.Attachments;
 using HomeSchool.Api.Features.Reporting.Violations;
 using HomeSchool.Core.Attachments.Domain;
 using HomeSchool.Core.Data;
@@ -26,6 +27,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//  https://www.c-sharpcorner.com/article/restrict-uploaded-file-size-in-asp-net-core2/
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -73,6 +76,12 @@ builder.Services.AddAuthorization(cfg =>
     {
         options.RequireRole(RoleDefaults.Medium, RoleDefaults.Premium, RoleDefaults.Admin, RoleDefaults.SuperAdmin);
     });
+    
+    cfg.AddPolicy(PolicyDefaults.ConfirmedAccount, options =>
+    {
+        options.RequireClaim("confirmed", "True");
+    });
+    
 });
 
 
@@ -80,7 +89,7 @@ builder.Services.AddLiminalFileStore(options =>
 {
     options.UseEntityFrameworkStores<ApplicationDbContext, ApplicationAttachment>();
    
-    options.UseS3Disk("main", s3Options =>
+    options.UseS3Disk("S3", s3Options =>
     {
         
     });
@@ -194,6 +203,7 @@ app.MapMagic<ApplicationUser>();
 app.MapOAuth<ApplicationUser>();
 app.MapLinking<ApplicationUser>();
 app.MapTokenEndpoints<ApplicationUser>();
+app.MapAttachments();
 
 app.MapReport<ApplicationUser>();
 
