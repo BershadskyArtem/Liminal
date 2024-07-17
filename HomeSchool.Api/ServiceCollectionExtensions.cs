@@ -8,11 +8,13 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddJwtAuth(this IServiceCollection services, IConfiguration configuration)
     {
+        Console.WriteLine(configuration["Liminal:Auth:Jwt:Secret"] + " ----JWT Key");
+        
         var tokenFullValidationParams = new TokenValidationParameters()
         {
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.Zero,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Liminal:Auth:Jwt:Secret"] ?? throw new ArgumentException())),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["Liminal:Auth:Jwt:Secret"] ?? throw new ArgumentException())),
             ValidateIssuer = false,
             ValidateAudience = false,
             RequireExpirationTime = false,

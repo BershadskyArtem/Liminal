@@ -84,14 +84,17 @@ builder.Services.AddAuthorization(cfg =>
     
 });
 
-
 builder.Services.AddLiminalFileStore(options =>
 {
     options.UseEntityFrameworkStores<ApplicationDbContext, ApplicationAttachment>();
    
     options.UseS3Disk("S3", s3Options =>
     {
-        
+        s3Options.Host = builder.Configuration["Liminal:Storage:S3:Url"] ?? throw new ArgumentException("Host");
+        s3Options.BucketName = builder.Configuration["Liminal:Storage:S3:Bucket"] ?? throw new ArgumentException("Bucket");
+        s3Options.AccessKey = builder.Configuration["Liminal:Storage:S3:AccessKey"] ?? throw new ArgumentException("Access");
+        s3Options.SecretKey = builder.Configuration["Liminal:Storage:S3:SecretKey"] ?? throw new ArgumentException("Secret");
+        s3Options.Region = builder.Configuration["Liminal:Storage:S3:Region"] ?? throw new ArgumentException("Region");
     });
 });
 

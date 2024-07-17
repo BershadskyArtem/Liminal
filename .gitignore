@@ -1,5 +1,9 @@
 bin/
 obj/
+postgres-data/
+s3-data/
+volume/
+.terraform/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
@@ -10,3 +14,4 @@ riderModule.iml
 *.db-wal
 appsettings.json
 appsettings.Development.json
+.terraform.lock.hcl

@@ -33,6 +33,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage", "Liminal.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage.EntityFrameworkCore", "Liminal.Storage.EntityFrameworkCore\Liminal.Storage.EntityFrameworkCore.csproj", "{F34300D8-00BA-4F81-A995-66B20406A487}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-deploy", "local-deploy", "{E923FB78-F257-4E26-8DA3-DEF84D3533AE}"
+	ProjectSection(SolutionItems) = preProject
+		local.docker.tf = scripts/local-deploy/local.docker.tf
+		docker-compose2.yml = scripts/local-deploy/docker-compose.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,5 +101,7 @@ Global
 		{11F875DB-D117-46F9-AD48-A07361F5FFB2} = {499B4725-5FFC-481F-AF10-30DD5116ABA2}
 		{673EF5E1-B228-4D1E-B99F-8ED66177F534} = {B77632AF-2F92-4E17-92F6-00DEF11E19E7}
 		{F34300D8-00BA-4F81-A995-66B20406A487} = {B77632AF-2F92-4E17-92F6-00DEF11E19E7}
+		{F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A} = {D78DA89F-9224-48D6-A999-984473C4E6A6}
+		{E923FB78-F257-4E26-8DA3-DEF84D3533AE} = {F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A}
 	EndGlobalSection
 EndGlobal

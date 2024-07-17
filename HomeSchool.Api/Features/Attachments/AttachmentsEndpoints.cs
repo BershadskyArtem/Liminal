@@ -123,8 +123,8 @@ public static class AttachmentsEndpoints
             Size = fileInfo.Size,
             ExternalId = Guid.NewGuid().ToString(),
             UserId = auth.UserId,
-            
         };
+        
         appAttachment.SetTransient(false);
 
         await db.Set().AddAsync(appAttachment);

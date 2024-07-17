@@ -1,12 +1,53 @@
 ﻿services:
-  liminal.example:
-    image: liminal.example
-    build:
-      context: .
-      dockerfile: Liminal.Example/Dockerfile
-
   homeschool.api:
-    image: homeschool.api
+    container_name: school
     build:
       context: .
       dockerfile: HomeSchool.Api/Dockerfile
+      #args:
+        #- BUILD_CONFIGURATION=Development
+        # https://docs.docker.com/compose/compose-file/build/
+        # https://stackoverflow.com/questions/71904381/additional-property-args-is-not-allowed
+    ports:
+      - 3001:3001
+    environment:
+      # https://stackoverflow.com/questions/42572311/appsettings-json-for-net-core-app-in-docker
+      - Liminal__Storage__S3__Url=http://s4:4566
+      - School__DB=pgsql
+      - ConnectionStrings__pgsql=Server=database:5432; User Id=postgres;Password=postgrespw;Database=School
+      - ASPNETCORE_ENVIRONMENT=Development
+      # https://stackoverflow.com/questions/58453879/how-to-do-port-mapping-in-docker-when-running-net-core-applications
+      - ASPNETCORE_URLS=http://*:3001
+    
+    depends_on:
+      - s3
+      - database
+  
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_DB=School
+    volumes:
+      # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
+      - ./postgres-data:/var/lib/postgresql/data
+    
+  database.management:
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 3003:80
+    depends_on:
+      - database
+    
+  s3:
+    image: localstack/localstack
+    container_name: s4
+    ports:
+      - 4510-4559:4510-4559
+      - 4566:4566
+    volumes:
+      - "./s3-data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
