@@ -76,17 +76,17 @@ public static class MagicLinkEndpoints
 
         if (result)
         {
-            return TypedResults.Ok(new SendMagicLinkResponse()
+            return TypedResults.Ok(new SendMagicLinkResponse
             {
                 IsSuccess = true,
                 Message = "Sent"
             });
         }
         
-        return TypedResults.BadRequest(new SendMagicLinkResponse()
+        return TypedResults.BadRequest(new SendMagicLinkResponse
         {
             IsSuccess = false,
-            Message = "Unable to sent email to specified email address",
+            Message = "Unable to sent email to specified email address"
         });
     }
     

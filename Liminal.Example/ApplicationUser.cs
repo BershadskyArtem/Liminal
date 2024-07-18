@@ -2,7 +2,5 @@ using Liminal.Auth.Models;
 
 namespace Liminal.Example;
 
-public class ApplicationUser : AbstractUser
-{
-    
-}
+// ReSharper disable once ClassNeverInstantiated.Global
+public class ApplicationUser : AbstractUser;

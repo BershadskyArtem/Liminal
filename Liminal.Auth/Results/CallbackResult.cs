@@ -19,7 +19,7 @@ public class CallbackResult<TUser> where TUser : AbstractUser
 
     public static CallbackResult<TUser> Success(string email, ClaimsPrincipal principal, string? redirectAfter)
     {
-        return new CallbackResult<TUser>()
+        return new CallbackResult<TUser>
         {
             IsSuccess = true,
             Principal = principal,
@@ -30,7 +30,7 @@ public class CallbackResult<TUser> where TUser : AbstractUser
 
     public static CallbackResult<TUser> Failure(string message)
     {
-        return new CallbackResult<TUser>()
+        return new CallbackResult<TUser>
         {
             IsSuccess = false,
             Principal = null,

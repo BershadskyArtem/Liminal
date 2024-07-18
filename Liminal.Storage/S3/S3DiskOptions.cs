@@ -22,5 +22,26 @@ public class S3DiskOptions
             RegionEndpoint = RegionEndpoint.GetBySystemName(Region)
         };
 
-    public AmazonS3Client ToS3Client() => new(ToCredentials(), ToS3Config());
+    public AmazonS3Client ToS3Client()
+    {
+        if (_client is not null)
+        {
+            return _client;
+        }
+        
+        var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
+        var awsConfig = new AmazonS3Config
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(Region),
+            ServiceURL = Host,
+            ForcePathStyle = true
+        };
+        
+        _client = new AmazonS3Client(credentials, awsConfig);
+
+        return _client;
+    }
+
+    private AmazonS3Client? _client;
+
 }

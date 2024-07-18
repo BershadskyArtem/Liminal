@@ -100,13 +100,13 @@ public static class TokenEndpoints
         public static GetMeResponse Create<TUser>(TUser user)
             where TUser : AbstractUser
         {
-            return new GetMeResponse()
+            return new GetMeResponse
             {
                 Id = user.Id.ToString(),
                 Email = user.Email,
                 IsConfirmed = user.IsConfirmed,
                 Role = user.Role,
-                Username = user.Username,
+                Username = user.Username
             };
         }
     }

@@ -14,7 +14,7 @@ public class StateGenerator(OAuthFlowBuilder builder) : IStateGenerator
 
         var expires = DateTime.UtcNow.AddMinutes(3);
 
-        var claims = new List<Claim>()
+        var claims = new List<Claim>
         {
             new ("provider", provider),
             new ("redirect_after", redirectAfter),
@@ -40,7 +40,7 @@ public class StateGenerator(OAuthFlowBuilder builder) : IStateGenerator
     {
         var securityKey = builder.StateCryptoKey;
         var jwtHandler = new JwtSecurityTokenHandler();
-        var tokenResult = await jwtHandler.ValidateTokenAsync(state, new TokenValidationParameters()
+        var tokenResult = await jwtHandler.ValidateTokenAsync(state, new TokenValidationParameters
         {
             ValidateAudience = false,
             ValidateIssuer = false,
@@ -89,7 +89,7 @@ public class StateGenerator(OAuthFlowBuilder builder) : IStateGenerator
             }
         }
 
-        var jwtState = new State()
+        var jwtState = new State
         {
             FlowState = flowState,
             Provider = provider,

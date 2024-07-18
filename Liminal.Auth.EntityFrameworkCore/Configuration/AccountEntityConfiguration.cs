@@ -24,7 +24,7 @@ public class AccountEntityConfiguration<TUser> : IEntityTypeConfiguration<Accoun
         builder.HasIndex(a => new
         {
             a.Email,
-            a.Provider,
+            a.Provider
         }, "IX_AccountProviderEmail");
 
         builder

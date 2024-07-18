@@ -34,7 +34,7 @@ public class UserToken
             throw new ArgumentNullException(nameof(refreshTokenValidBefore));
         }
         
-        return new UserToken()
+        return new UserToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,

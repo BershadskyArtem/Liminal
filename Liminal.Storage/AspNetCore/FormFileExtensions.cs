@@ -4,6 +4,5 @@ namespace Liminal.Storage.AspNetCore;
 
 public static class FormFileExtensions
 {
-    public static FormFileInfo ToFileInfo(this IFormFile file)
-        => new FormFileInfo(file);
+    public static FormFileInfo ToFileInfo(this IFormFile file) => new(file);
 }

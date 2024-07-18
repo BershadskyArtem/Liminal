@@ -41,6 +41,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-deploy", "local-deplo
 		docker-compose2.yml = scripts/local-deploy/docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services-deploy", "services-deploy", "{241E145F-0E7D-47AD-A670-DD602A777A70}"
+    ProjectSection(SolutionItems) = preProject
+    	docker-compose.services.yml = scripts/services-deploy/docker-compose.services.yml
+    	docker-compose.tofu.yml = scripts/services-deploy/docker-compose.tofu.yml
+    	services.docker.tf = scripts/services-deploy/services.docker.tf
+    	apply-terraform.sh = scripts/services-deploy/apply-terraform.sh
+    EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,5 +111,6 @@ Global
 		{F34300D8-00BA-4F81-A995-66B20406A487} = {B77632AF-2F92-4E17-92F6-00DEF11E19E7}
 		{F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A} = {D78DA89F-9224-48D6-A999-984473C4E6A6}
 		{E923FB78-F257-4E26-8DA3-DEF84D3533AE} = {F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A}
+		{241E145F-0E7D-47AD-A670-DD602A777A70} = {F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A}
 	EndGlobalSection
 EndGlobal

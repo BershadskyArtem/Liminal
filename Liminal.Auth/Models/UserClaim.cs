@@ -16,7 +16,7 @@ public class UserClaim
 
     public static UserClaim FromClaim (Claim claim)
     {
-        return new UserClaim()
+        return new UserClaim
         {
             ClaimType = claim.Type,
             ClaimValue = claim.Value

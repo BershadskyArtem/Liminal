@@ -19,7 +19,7 @@ public class TokenSet
         string? refreshToken, 
         DateTimeOffset? refreshTokenValidUntil)
     {
-        return new TokenSet()
+        return new TokenSet
         {
             AccessToken = accessToken,
             AccessTokenValidUntil = accessTokenValidUntil,

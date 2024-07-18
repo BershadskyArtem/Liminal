@@ -7,8 +7,6 @@ namespace Liminal.Auth.Implementations;
 public class DefaultAuthContext<TUser> : IAuthContext<TUser> 
     where TUser : AbstractUser
 {
-    private readonly IUserStore<TUser> _userStore;
-
     public DefaultAuthContext(IHttpContextAccessor accessor, IUserStore<TUser> userStore)
     {
         _userStore = userStore;
@@ -37,22 +35,33 @@ public class DefaultAuthContext<TUser> : IAuthContext<TUser>
 
     public Guid? UserId { get; set; }
     public bool IsConfirmed { get; set; }
+    public async Task<string?> Role()
+    {
+        return (await Current())?.Role;
+    }
+
     public async Task<TUser?> Current()
     {
-        if (UserId is not null)
+        if (UserId is null)
         {
-            if (_user is not null)
-            {
-                return _user;
-            }
-
-            _user = await _userStore.GetByIdAsync(UserId.Value);
-
+            return null;
+        }
+        
+        if (_user is not null)
+        {
             return _user;
         }
 
-        return null;
-    }
+        _user = await _userStore.GetByIdAsync(UserId.Value);
 
+        if (_user is null)
+        {
+            UserId = null;
+        }
+
+        return _user;
+    }
+    
+    private readonly IUserStore<TUser> _userStore;
     private TUser? _user;
 }

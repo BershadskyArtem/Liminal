@@ -29,7 +29,7 @@ public static class HttpContextExtensions
 
         //context.Response.Headers.Append("Authorization", $"{tokenType} {tokens.AccessToken}");
         
-        context.Response.Cookies.Append("Authorization", $"{tokenType} {tokens.AccessToken}", new CookieOptions()
+        context.Response.Cookies.Append("Authorization", $"{tokenType} {tokens.AccessToken}", new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddDays(30),
             HttpOnly = true,
@@ -43,7 +43,7 @@ public static class HttpContextExtensions
             return tokens;
         }
         
-        context.Response.Cookies.Append("RefreshToken", $"{tokenType} {tokens.RefreshToken}", new CookieOptions()
+        context.Response.Cookies.Append("RefreshToken", $"{tokenType} {tokens.RefreshToken}", new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddDays(90),
             HttpOnly = true,
@@ -74,7 +74,7 @@ public static class HttpContextExtensions
             return tokens;
         }
         
-        context.Response.Cookies.Append("Authorization", $"{tokenType} {tokens.AccessToken}", new CookieOptions()
+        context.Response.Cookies.Append("Authorization", $"{tokenType} {tokens.AccessToken}", new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddDays(30),
             HttpOnly = true,
@@ -88,7 +88,7 @@ public static class HttpContextExtensions
             return tokens;
         }
         
-        context.Response.Cookies.Append("RefreshToken", $"{tokenType} {tokens.RefreshToken}", new CookieOptions()
+        context.Response.Cookies.Append("RefreshToken", $"{tokenType} {tokens.RefreshToken}", new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddDays(90),
             HttpOnly = true,

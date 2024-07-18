@@ -7,8 +7,6 @@ public static class UsersEndpoints
         return app;
     }
 
-   
-
     public static IEndpointRouteBuilder MapVerboseMe(this IEndpointRouteBuilder app)
     {
         app.MapGet("api/user/me", GetMeVerbose);

@@ -10,16 +10,16 @@ public class OAuthSignInResult
     public string? RedirectAfter { get; set; }
 
     public static OAuthSignInResult Success(TokenSet tokens, UserInfo user, string provider)
-        => new OAuthSignInResult()
+        => new()
         {
             Tokens = tokens,
             User = user,
             IsSuccess = true,
-            Provider = provider,
+            Provider = provider
         };
     
     public static OAuthSignInResult Failure(string? failureMessage) =>
-        new OAuthSignInResult()
+        new()
         {
             IsSuccess = false,
             FailureMessage = failureMessage

@@ -16,7 +16,7 @@ public class AccountClaim
 
     public static AccountClaim FromClaim(Claim claim, Guid userId)
     {
-        return new AccountClaim()
+        return new AccountClaim
         {
             ClaimType = claim.Type,
             ClaimValue = claim.Value,

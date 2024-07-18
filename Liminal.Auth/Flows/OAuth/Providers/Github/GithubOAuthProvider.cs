@@ -22,7 +22,7 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
         var httpClient = httpClientFactory.CreateClient();
         try
         {
-            var request = new GithubTokenRequest()
+            var request = new GithubTokenRequest
             {
                 ClientId = ClientId,
                 ClientSecret = ClientSecret,
@@ -108,11 +108,11 @@ public class GithubOAuthProvider(GithubOAuthProviderOptions options, IHttpClient
             throw new Exception("No Github emails found.");
         }
 
-        var githubUser = new GithubUser()
+        var githubUser = new GithubUser
         {
             UserName = user!.Name ?? string.Empty,
             Email = primaryVerifiedEmail?.Email ?? anyVerifiedEmail?.Email!,
-            IsVerified = primaryVerifiedEmail?.IsVerified ?? anyVerifiedEmail?.IsVerified ?? false,
+            IsVerified = primaryVerifiedEmail?.IsVerified ?? anyVerifiedEmail?.IsVerified ?? false
         };
         
         return githubUser;

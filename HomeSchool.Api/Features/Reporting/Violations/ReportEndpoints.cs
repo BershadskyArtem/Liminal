@@ -218,7 +218,7 @@ public static class ReportEndpoints
 
         public static GetReportResponse FromModel(Report report)
         {
-            return new GetReportResponse()
+            return new GetReportResponse
             {
                 Id = report.Id,
                 AuthorId = report.AuthorId,

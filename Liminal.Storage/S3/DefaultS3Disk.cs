@@ -15,15 +15,15 @@ public class DefaultS3Disk : IDisk
         IServiceProvider serviceProvider)
     {
         Name = name;
-        var diskOptions = serviceProvider.GetRequiredKeyedService<S3DiskOptions>(Name);
-        _client = diskOptions.ToS3Client();
+        _options = serviceProvider.GetRequiredKeyedService<S3DiskOptions>(Name);
+        _client = _options.ToS3Client();
     }
     
      public async Task UploadAsync(Stream stream, string key, string contentType)
     {
-        var request = new PutObjectRequest()
+        var request = new PutObjectRequest
         {
-            BucketName = Name,
+            BucketName = _options.BucketName,
             Key = key,
             InputStream = stream,
             ContentType = contentType
@@ -39,12 +39,11 @@ public class DefaultS3Disk : IDisk
 
     public async Task DeleteByIdAsync(string id)
     {
-        var request = new DeleteObjectRequest()
+        var request = new DeleteObjectRequest
         {
             Key = id,
-            BucketName = Name
+            BucketName = _options.BucketName
         };
-
 
         var uploadResponse = await _client.DeleteObjectAsync(request);
 
@@ -56,10 +55,10 @@ public class DefaultS3Disk : IDisk
 
     public async Task<Stream> GetFileByIdAsync(string id)
     {
-        var request = new GetObjectRequest()
+        var request = new GetObjectRequest
         {
-            BucketName = Name,
-            Key = id,
+            BucketName = _options.BucketName,
+            Key = id
         };
 
         using (var objectResponse = await _client.GetObjectAsync(request))
@@ -82,7 +81,7 @@ public class DefaultS3Disk : IDisk
 
     public async Task<string> GetPublicSignedLinkByIdAsync(string id, TimeSpan validFor)
     {
-        var request = new GetPreSignedUrlRequest()
+        var request = new GetPreSignedUrlRequest
         {
             Expires = DateTime.UtcNow.Add(validFor),
             Key = id,
@@ -100,4 +99,5 @@ public class DefaultS3Disk : IDisk
     }
 
     private readonly AmazonS3Client _client;
+    private readonly S3DiskOptions _options;
 }

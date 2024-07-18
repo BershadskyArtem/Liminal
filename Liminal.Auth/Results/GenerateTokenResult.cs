@@ -24,7 +24,7 @@ public class GenerateTokenResult : ResultBase
     
     public static GenerateTokenResult Failure(string message)
     {
-        return new GenerateTokenResult()
+        return new GenerateTokenResult
         {
             IsSuccess = false,
             AccessToken = string.Empty,
@@ -36,7 +36,7 @@ public class GenerateTokenResult : ResultBase
     
     public static GenerateTokenResult Success(string token, string refreshToken, DateTime expires, int seconds, string type)
     {
-        return new GenerateTokenResult()
+        return new GenerateTokenResult
         {
             AccessToken = token,
             RefreshToken = refreshToken,

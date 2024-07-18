@@ -64,47 +64,47 @@ public class Report: AuditableEntity
 
     public static Report CreateUserReport(Guid authorId, Guid targetUserId, string text, ReportSeverity severity) 
     {
-        return new Report()
+        return new Report
         {
             Id = Guid.NewGuid(),
             Text = text,
             Severity = severity,
             AuthorId = authorId,
-            TargetUserId = targetUserId,
+            TargetUserId = targetUserId
         };
     }
     
     public static Report CreateAnonymousUserReport(Guid targetUserId, string text, ReportSeverity severity)
     {
-        return new Report()
+        return new Report
         {
             Id = Guid.NewGuid(),
             Text = text,
             Severity = severity,
-            TargetUserId = targetUserId,
+            TargetUserId = targetUserId
         };
     }
 
     public static Report Create(Guid targetId, string text, ReportSeverity severity, Guid? authorId)
     {
-        return new Report()
+        return new Report
         {
             Id = Guid.NewGuid(),
             TargetUserId = targetId,
             Text = text,
             Severity = severity,
-            AuthorId = authorId,
+            AuthorId = authorId
         };
     }
     
     public static Report Create(string text, ReportSeverity severity, Guid? authorId = null)
     {
-        return new Report()
+        return new Report
         {
             Id = Guid.NewGuid(),
             Text = text,
             Severity = severity,
-            AuthorId = authorId,
+            AuthorId = authorId
         };
     }
 }

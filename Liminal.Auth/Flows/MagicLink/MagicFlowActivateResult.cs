@@ -13,15 +13,15 @@ public class MagicFlowActivateResult : ResultBase
 
     public static MagicFlowActivateResult Failure()
     {
-        return new MagicFlowActivateResult()
+        return new MagicFlowActivateResult
         {
-            IsSuccess = false,
+            IsSuccess = false
         };
     }
     
     public static MagicFlowActivateResult Success(ClaimsPrincipal principal, string email)
     {
-        return new MagicFlowActivateResult()
+        return new MagicFlowActivateResult
         {
             Principal = principal,
             Email = email,

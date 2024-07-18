@@ -1,5 +1,6 @@
 namespace Liminal.Mail.Implementations;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class ConsoleMailer : AbstractMailer
 {
     public override Task<bool> SendEmailAsync(string email, string content)

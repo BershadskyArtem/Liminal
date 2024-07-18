@@ -1,0 +1,7 @@
+﻿# https://londonappdeveloper.com/how-to-use-terraform-via-docker-compose-for-professional-developers/
+services:
+  tofu:
+    image: ghcr.io/opentofu/opentofu:latest
+    working_dir: /infra
+    volumes:
+      - .:/infra

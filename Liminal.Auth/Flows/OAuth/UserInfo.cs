@@ -11,11 +11,11 @@ public class UserInfo
     
     public static UserInfo Create(string email, string userName, bool isVerified)
     {
-        return new UserInfo()
+        return new UserInfo
         {
             Email = email,
             UserName = userName,
-            IsVerified = isVerified,
+            IsVerified = isVerified
         };
     }
     

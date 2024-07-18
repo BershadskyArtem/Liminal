@@ -38,6 +38,7 @@ public static class AttachmentsEndpoints
             .WithTags("attachments");
         
         app.MapDelete("api/attachments/{id}", DeleteAttachment)
+            .RequireAuthorization(PolicyDefaults.ConfirmedAccount)
             .WithOpenApi(options =>
             {
                 options.Summary = "Deletes attachment file";
@@ -72,16 +73,15 @@ public static class AttachmentsEndpoints
             return TypedResults.NotFound();
         }
 
-        var currentUser = await auth.Current();
+        var userRole = await auth.Role();
 
-        if (currentUser is null)
+        if (userRole is null)
         {
             return TypedResults.Unauthorized();
         }
         
         if (attachment.UserId != auth.UserId && 
-            RoleDefaults.Admin != currentUser.Role && 
-            RoleDefaults.SuperAdmin != currentUser.Role)
+            !RoleDefaults.IsAdministrative(userRole))
         {
             return TypedResults.Unauthorized();
         }
@@ -113,7 +113,7 @@ public static class AttachmentsEndpoints
         
         var fileInfo = file.ToFileInfo();
         
-        var appAttachment = new ApplicationAttachment()
+        var appAttachment = new ApplicationAttachment
         {
             DiskName = "S3",
             Id = Guid.NewGuid(),
@@ -122,7 +122,7 @@ public static class AttachmentsEndpoints
             MimeType = fileInfo.MimeType,
             Size = fileInfo.Size,
             ExternalId = Guid.NewGuid().ToString(),
-            UserId = auth.UserId,
+            UserId = auth.UserId
         };
         
         appAttachment.SetTransient(false);
@@ -138,7 +138,7 @@ public static class AttachmentsEndpoints
 
         await fileStore
              .Disk("S3")
-             .UploadAsync(fileInfo.ToStream(), appAttachment.Extension, appAttachment.MimeType);
+             .UploadAsync(fileInfo.ToStream(), appAttachment.ExternalId, appAttachment.MimeType);
 
         return TypedResults.Created($"api/attachments/{appAttachment.Id}");
     }
@@ -183,7 +183,7 @@ public static class AttachmentsEndpoints
             return TypedResults.NotFound();
         }
 
-        var response = new AttachmentInfoResponse()
+        var response = new AttachmentInfoResponse
         {
             Id = id,
             Size = attachment.Size,

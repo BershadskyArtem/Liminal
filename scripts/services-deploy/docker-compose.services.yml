@@ -1,0 +1,31 @@
+﻿# https://londonappdeveloper.com/how-to-use-terraform-via-docker-compose-for-professional-developers/
+services:
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_DB=School
+    ports:
+      - 5432:5432
+    volumes:
+      # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
+      - ./postgres-data:/var/lib/postgresql/data
+
+  database.management:
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 3003:80
+    depends_on:
+      - database
+
+  s3:
+    image: localstack/localstack
+    ports:
+      - 4510-4559:4510-4559
+      - 4566:4566
+    volumes:
+      - "./s3-data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

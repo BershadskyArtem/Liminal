@@ -7,6 +7,7 @@ public interface IAuthContext<TUser>
 {
     public Guid? UserId { get; set; }
     public bool IsConfirmed { get; set; }
+    public Task<string?> Role();
 
     public Task<TUser?> Current();
 }

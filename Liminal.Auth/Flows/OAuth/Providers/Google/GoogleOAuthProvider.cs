@@ -42,7 +42,7 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
 
         try
         {
-            var req = new GoogleOAuthRequest()
+            var req = new GoogleOAuthRequest
             {
                 ClientId = options.ClientId,
                 ClientSecret = options.ClientSecret,
@@ -96,11 +96,11 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
             throw new Exception("Cannot parse user from Google");
         }
 
-        var googleUser = new GoogleUser()
+        var googleUser = new GoogleUser
         {
             Email = user.Email,
             IsVerified = user.IsVerified,
-            Username = user.Username ?? string.Empty,
+            Username = user.Username ?? string.Empty
         };
 
         return googleUser;
@@ -112,11 +112,11 @@ public class GoogleOAuthProvider(IHttpClientFactory httpClientFactory,GoogleOAut
 
         try
         {
-            var req = new GoogleRefreshRequest()
+            var req = new GoogleRefreshRequest
             {
                 RefreshToken = refreshToken,
                 ClientId = options.ClientId,
-                ClientSecret = options.ClientSecret,
+                ClientSecret = options.ClientSecret
             };
 
             var refreshResponse = await client.PostAsJsonAsync("https://oauth2.googleapis.com/token?", req);

@@ -12,7 +12,7 @@ public class UploadResult<TAttachment>
     
     public static UploadResult<TAttachment> Failure(string errorMessage)
     {
-        return new UploadResult<TAttachment>()
+        return new UploadResult<TAttachment>
         {
             IsSuccess = false,
             ErrorMessage = errorMessage
@@ -21,7 +21,7 @@ public class UploadResult<TAttachment>
 
     public static UploadResult<TAttachment> Success(TAttachment entry)
     {
-        return new UploadResult<TAttachment>()
+        return new UploadResult<TAttachment>
         {
             IsSuccess = true,
             Entry = entry

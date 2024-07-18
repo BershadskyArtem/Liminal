@@ -28,7 +28,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseInMemoryDatabase("inmem.db");
 });
 
-var tokenFullValidationParams = new TokenValidationParameters()
+var tokenFullValidationParams = new TokenValidationParameters
 {
     ValidateIssuerSigningKey = true,
     ClockSkew = TimeSpan.Zero,
@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(opt =>
     opt.SaveToken = true;
     opt.TokenValidationParameters = tokenFullValidationParams;
     opt.MapInboundClaims = false;
-    opt.Events = new JwtBearerEvents()
+    opt.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
@@ -65,17 +65,17 @@ builder.Services.AddAuthentication(opt =>
 
             context.Token = leftPart;
             return Task.CompletedTask;
-        },
+        }
     };
 });
 
-builder.Services.AddAuthorization(cfg =>
-{
-    cfg.AddPolicy(PolicyDefaults.AdminName, options =>
+builder
+    .Services
+    .AddAuthorizationBuilder()
+    .AddPolicy(PolicyDefaults.AdminName, options =>
     {
         options.RequireRole(RoleDefaults.Admin, RoleDefaults.SuperAdmin);
     });
-});
 
 builder.Services.AddLiminalAuth<ApplicationUser>(options =>
 {

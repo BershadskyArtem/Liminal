@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         Console.WriteLine(configuration["Liminal:Auth:Jwt:Secret"] + " ----JWT Key");
         
-        var tokenFullValidationParams = new TokenValidationParameters()
+        var tokenFullValidationParams = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             ClockSkew = TimeSpan.Zero,
@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
             opt.SaveToken = true;
             opt.TokenValidationParameters = tokenFullValidationParams;
             opt.MapInboundClaims = false;
-            opt.Events = new JwtBearerEvents()
+            opt.Events = new JwtBearerEvents
             {
                 OnMessageReceived = context =>
                 {
@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
 
                     context.Token = leftPart;
                     return Task.CompletedTask;
-                },
+                }
             };
         });
 

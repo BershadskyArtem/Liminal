@@ -34,13 +34,13 @@ public class Account
     
     public static Account Create(string provider, string email, bool isConfirmed, Guid linkedUserId)
     {
-        return new Account()
+        return new Account
         {
             Id = Guid.NewGuid(),
             Email = email,
             IsConfirmed = isConfirmed,
             UserId = linkedUserId,
-            Provider = provider,
+            Provider = provider
         };
     }
     

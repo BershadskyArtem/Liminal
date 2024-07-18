@@ -9,4 +9,14 @@ public static class RoleDefaults
     public static readonly string Premium = "premium";
     public static readonly string Admin = "admin";
     public static readonly string SuperAdmin = "super_admin";
+
+    public static bool IsAdministrative(string roleName)
+    {
+        if (roleName == Admin || roleName == SuperAdmin)
+        {
+            return true;
+        }
+
+        return false;
+    }
 }
