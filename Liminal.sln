@@ -1,23 +1,23 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Common", "Liminal.Common\Liminal.Common.csproj", "{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}"
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Common", "src\template\Liminal.Common\Liminal.Common.csproj", "{BDB33A62-D6B2-4FB0-A71E-FFE58B2009E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth", "Liminal.Auth\Liminal.Auth.csproj", "{8569B86B-3141-46C2-A577-F9997B0F65A1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Example", "Liminal.Example\Liminal.Example.csproj", "{4BCFD636-9B2B-4211-947B-4A06E17ACB66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth", "src\template\Liminal.Auth\Liminal.Auth.csproj", "{8569B86B-3141-46C2-A577-F9997B0F65A1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D78DA89F-9224-48D6-A999-984473C4E6A6}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
+		Directory.Build.props = Directory.Build.props
+		stylecop.json = stylecop.json
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.EntityFrameworkCore", "Liminal.Auth.EntityFrameworkCore\Liminal.Auth.EntityFrameworkCore.csproj", "{32425740-1FA5-443F-A5D4-0897FB82B4C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.EntityFrameworkCore", "src\template\Liminal.Auth.EntityFrameworkCore\Liminal.Auth.EntityFrameworkCore.csproj", "{32425740-1FA5-443F-A5D4-0897FB82B4C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Mail", "Liminal.Mail\Liminal.Mail.csproj", "{6260C9EF-99A2-4108-8AF2-309034DE17D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Mail", "src\template\Liminal.Mail\Liminal.Mail.csproj", "{6260C9EF-99A2-4108-8AF2-309034DE17D7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{19062859-7C8A-4A56-9C7F-9A6CBC3730CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.UnitTests", "Liminal.Auth.UnitTests\Liminal.Auth.UnitTests.csproj", "{86B29017-08E2-454E-9FE7-9C1EEB55B926}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Auth.UnitTests", "src\template\Liminal.Auth.UnitTests\Liminal.Auth.UnitTests.csproj", "{86B29017-08E2-454E-9FE7-9C1EEB55B926}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6B691F0A-238E-40E1-97B3-C1C01F86A089}"
 EndProject
@@ -25,13 +25,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "template", "template", "{B7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{499B4725-5FFC-481F-AF10-30DD5116ABA2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeSchool.Api", "HomeSchool.Api\HomeSchool.Api.csproj", "{51641896-156D-4A7E-B322-01F56D25D493}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeSchool.Api", "src\project\HomeSchool.Api\HomeSchool.Api.csproj", "{51641896-156D-4A7E-B322-01F56D25D493}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeSchool.Core", "HomeSchool.Core\HomeSchool.Core.csproj", "{11F875DB-D117-46F9-AD48-A07361F5FFB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeSchool.Core", "src\project\HomeSchool.Core\HomeSchool.Core.csproj", "{11F875DB-D117-46F9-AD48-A07361F5FFB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage", "Liminal.Storage\Liminal.Storage.csproj", "{673EF5E1-B228-4D1E-B99F-8ED66177F534}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage", "src\template\Liminal.Storage\Liminal.Storage.csproj", "{673EF5E1-B228-4D1E-B99F-8ED66177F534}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage.EntityFrameworkCore", "Liminal.Storage.EntityFrameworkCore\Liminal.Storage.EntityFrameworkCore.csproj", "{F34300D8-00BA-4F81-A995-66B20406A487}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liminal.Storage.EntityFrameworkCore", "src\template\Liminal.Storage.EntityFrameworkCore\Liminal.Storage.EntityFrameworkCore.csproj", "{F34300D8-00BA-4F81-A995-66B20406A487}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F36A2BD6-0AA2-45DF-8C2D-04A6EFF74B8A}"
 EndProject
@@ -42,12 +42,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local-deploy", "local-deplo
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services-deploy", "services-deploy", "{241E145F-0E7D-47AD-A670-DD602A777A70}"
-    ProjectSection(SolutionItems) = preProject
-    	docker-compose.services.yml = scripts/services-deploy/docker-compose.services.yml
-    	docker-compose.tofu.yml = scripts/services-deploy/docker-compose.tofu.yml
-    	services.docker.tf = scripts/services-deploy/services.docker.tf
-    	apply-terraform.sh = scripts/services-deploy/apply-terraform.sh
-    EndProjectSection
+				ProjectSection(SolutionItems) = preProject
+					docker-compose.services.yml = scripts/services-deploy/docker-compose.services.yml
+					docker-compose.tofu.yml = scripts/services-deploy/docker-compose.tofu.yml
+					services.docker.tf = scripts/services-deploy/services.docker.tf
+					apply-terraform.sh = scripts/services-deploy/apply-terraform.sh
+				EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +63,6 @@ Global
 		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8569B86B-3141-46C2-A577-F9997B0F65A1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BCFD636-9B2B-4211-947B-4A06E17ACB66}.Release|Any CPU.Build.0 = Release|Any CPU
 		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32425740-1FA5-443F-A5D4-0897FB82B4C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,7 +94,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{86B29017-08E2-454E-9FE7-9C1EEB55B926} = {19062859-7C8A-4A56-9C7F-9A6CBC3730CE}
-		{4BCFD636-9B2B-4211-947B-4A06E17ACB66} = {6B691F0A-238E-40E1-97B3-C1C01F86A089}
 		{B77632AF-2F92-4E17-92F6-00DEF11E19E7} = {6B691F0A-238E-40E1-97B3-C1C01F86A089}
 		{8569B86B-3141-46C2-A577-F9997B0F65A1} = {B77632AF-2F92-4E17-92F6-00DEF11E19E7}
 		{32425740-1FA5-443F-A5D4-0897FB82B4C8} = {B77632AF-2F92-4E17-92F6-00DEF11E19E7}

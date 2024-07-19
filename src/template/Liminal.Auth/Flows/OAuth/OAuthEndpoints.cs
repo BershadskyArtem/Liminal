@@ -1,0 +1,104 @@
+// Copyright (c) Bershadsky Artyom. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Liminal.Auth.Extensions;
+using Liminal.Auth.Jwt;
+using Liminal.Auth.Models;
+using Liminal.Common.Options;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+
+namespace Liminal.Auth.Flows.OAuth;
+
+public static class OAuthEndpoints
+{
+    public static IEndpointRouteBuilder MapOAuth<TUser>(this IEndpointRouteBuilder app)
+        where TUser : AbstractUser
+    {
+        app.MapRedirect<TUser>();
+        app.MapCallback<TUser>();
+
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapRedirect<TUser>(this IEndpointRouteBuilder app)
+        where TUser : AbstractUser
+    {
+        app
+            .MapGet("api/auth/oauth/{provider}", RedirectToProvider<TUser>)
+            .AllowAnonymous()
+            .WithOpenApi(options =>
+            {
+                options.Summary = "OAuth redirect to provider";
+                options.Description = "Redirects to a given provider for authentification";
+
+                return options;
+            })
+            .WithTags("OAuth");
+
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapCallback<TUser>(this IEndpointRouteBuilder app)
+        where TUser : AbstractUser
+    {
+        app
+            .MapGet("api/auth/oauth/callback/{provider}", Callback<TUser>)
+            .AllowAnonymous()
+            .WithOpenApi(options =>
+            {
+                options.Summary = "OAuth callback";
+                options.Description = "Callback for OAuth providers";
+
+                return options;
+            })
+            .WithTags("OAuth");
+
+        return app;
+    }
+
+    public static async Task<RedirectHttpResult> RedirectToProvider<TUser>(
+        [FromRoute] string provider,
+        [FromQuery] string? redirectAfter,
+        [FromServices] OAuthFlow<TUser> flow,
+        [FromServices] FrontendOptions config)
+        where TUser : AbstractUser
+    {
+        var result = await flow.GetRedirectUrl(provider, redirectAfter ?? config.DefaultRedirectUrl);
+        return TypedResults.Redirect(result);
+    }
+
+    public static async Task<Results<BadRequest, RedirectHttpResult, BadRequest<string>>> Callback<TUser>(
+        [FromRoute] string provider,
+        [FromQuery] string code,
+        [FromQuery] string state,
+        [FromServices] OAuthFlow<TUser> flow,
+        [FromServices] FrontendOptions options,
+        HttpContext context)
+        where TUser : AbstractUser
+    {
+        var result = await flow.Callback(provider, code, state);
+
+        if (!result.IsSuccess)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        var generateTokenResult = await context.SignInAsyncLiminal(result.Principal!, JwtDefaults.Scheme);
+
+        if (!generateTokenResult.IsSuccess)
+        {
+            return TypedResults.BadRequest("Cannot generate cookie.");
+        }
+
+        if (string.IsNullOrWhiteSpace(result.RedirectAfter))
+        {
+            return TypedResults.Redirect(options.FrontendHost);
+        }
+
+        return TypedResults.Redirect(result.RedirectAfter);
+    }
+}

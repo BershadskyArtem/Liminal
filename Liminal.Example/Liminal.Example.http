@@ -1,6 +1,0 @@
-@Liminal.Example_HostAddress = http://localhost:5001
-
-GET {{Liminal.Example_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
