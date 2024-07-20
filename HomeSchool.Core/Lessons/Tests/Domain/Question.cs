@@ -1,5 +1,6 @@
 using HomeSchool.Core.Attachments.Domain;
 using HomeSchool.Core.Identity;
+using HomeSchool.Core.Lessons.Common.Domain;
 using HomeSchool.Core.Lessons.Tests.Enums;
 using Liminal.Common.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,11 @@ public class QuestionTypeConfiguration : IEntityTypeConfiguration<Question>
             .WithOne(a => a.Question)
             .HasForeignKey(a => a.QuestionId)
             .IsRequired();
+
+        builder
+            .HasMany(q => q.Tags)
+            .WithMany(t => t.Questions)
+            .UsingEntity("QuestionsTags");
 
         builder
             .HasOne(q => q.Attachment)
@@ -56,4 +62,5 @@ public class Question : AuditableEntity
     public virtual ICollection<AnswerOption> Answers { get; set; } = new List<AnswerOption>();
     public virtual ICollection<QuestionAttempt> Attempts { get; set; } = new List<QuestionAttempt>();
     public virtual ICollection<Test> Tests { get; set; } = new List<Test>();
+    public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }

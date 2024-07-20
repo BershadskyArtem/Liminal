@@ -1,0 +1,1 @@
+dotnet ef migrations remove --startup-project HomeSchool.Api --project HomeSchool.Core --context ApplicationDbContext

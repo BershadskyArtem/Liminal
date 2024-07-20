@@ -1,4 +1,5 @@
 using HomeSchool.Core.Identity;
+using HomeSchool.Core.Lessons.Common.Domain;
 using Liminal.Common.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,6 +31,11 @@ public class TestEntityTypeConfiguration : IEntityTypeConfiguration<Test>
             .IsRequired();
 
         builder
+            .HasMany(t => t.Tags)
+            .WithMany(tg => tg.Tests)
+            .UsingEntity("TestsTags");
+
+        builder
             .Property(t => t.Name)
             .HasMaxLength(256)
             .IsRequired();
@@ -58,4 +64,5 @@ public class Test : AuditableEntity
     public virtual int MaxTimeInSeconds { get; set; }
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
     public virtual ICollection<TestAttempt> TestAttempts { get; set; } = new List<TestAttempt>();
+    public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }
