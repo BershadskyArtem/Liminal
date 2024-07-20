@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Liminal.Auth.Results;
+using Microsoft.AspNetCore.Http;
 
 namespace Liminal.Auth.Abstractions;
 
@@ -22,4 +23,13 @@ public interface ITokenGenerator
     /// <param name="refreshToken"></param>
     /// <returns></returns>
     public Task<GenerateTokenResult> RefreshToken(string refreshToken);
+
+    /// <summary>
+    /// Signs out token so that refresh and access tokens are invalid. 
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="accessToken"></param>
+    /// <param name="refreshToken"></param>
+    /// <returns>Task that shows the progress of operation.</returns>
+    public Task SignOutAsync(HttpContext context , string? accessToken, string? refreshToken);
 }

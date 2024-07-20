@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Extensions;
+using Liminal.Auth.Jwt;
 using Liminal.Auth.Models;
 using Liminal.Auth.Results;
 using Microsoft.AspNetCore.Builder;
@@ -130,7 +131,7 @@ public static class TokenEndpoints
     
     public static void MapSignOut(this IEndpointRouteBuilder app)
     {
-        app.MapGet("api/auth/logout", SignOut)
+        app.MapGet("api/auth/logout", LogOut)
             .AllowAnonymous()
             .WithOpenApi(options =>
             {
@@ -141,11 +142,11 @@ public static class TokenEndpoints
             });
     }
 
-    public static async Task<Ok> SignOut(
-        [FromQuery] string tokenType,
+    public static async Task<Ok> LogOut(
+        [FromQuery] string _,
         HttpContext context)
     {
-        await context.SignOutLiminalAsync();
+        await context.SignOutLiminalAsync(JwtDefaults.Scheme);
         return TypedResults.Ok();
     }
 }

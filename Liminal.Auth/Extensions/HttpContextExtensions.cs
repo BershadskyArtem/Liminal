@@ -8,12 +8,35 @@ namespace Liminal.Auth.Extensions;
 
 public static class HttpContextExtensions
 {
-    public static Task SignOutLiminalAsync(this HttpContext context)
+    public static async Task SignOutLiminalAsync(this HttpContext context, string tokenType)
     {
-        // TODO: Delete token in database.
         context.Response.Cookies.Delete("Authorization");
-        context.Response.Cookies.Delete("RefreshToken");
-        return Task.CompletedTask;
+        
+        var accessTokenWithScheme = context.Request.Cookies["Authorization"];
+        var refreshTokenWithScheme = context.Request.Cookies["RefreshToken"];
+
+        string? accessToken = null;
+        string? refreshToken = null;
+        
+        if (!string.IsNullOrWhiteSpace(accessTokenWithScheme))
+        {
+            accessToken = accessTokenWithScheme
+                .Split(" ")
+                .LastOrDefault();
+        }
+        
+        if (!string.IsNullOrWhiteSpace(refreshTokenWithScheme))
+        {
+            context.Response.Cookies.Delete("RefreshToken");
+            
+            refreshToken = refreshTokenWithScheme
+                .Split(" ")
+                .LastOrDefault();
+        }
+        
+        var tokenGenerator = context.RequestServices.GetRequiredKeyedService<ITokenGenerator>(tokenType);
+
+        await tokenGenerator.SignOutAsync(context, accessToken, refreshToken);
     }
     
     public static async Task<GenerateTokenResult> SignInAsyncLiminal(this HttpContext context, ClaimsPrincipal principal, string tokenType)
@@ -99,5 +122,4 @@ public static class HttpContextExtensions
         
         return tokens;
     }
-    
 }

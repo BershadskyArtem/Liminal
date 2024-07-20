@@ -24,7 +24,7 @@ public static class AttachmentsEndpoints
                 
                 return options;
             })
-            .WithTags("attachments");
+            .WithTags("Attachments");
 
         app
             .MapGet("api/attachments/{id}/file", GetAttachmentFileById)
@@ -35,7 +35,7 @@ public static class AttachmentsEndpoints
                 
                 return options;
             })
-            .WithTags("attachments");
+            .WithTags("Attachments");
         
         app.MapDelete("api/attachments/{id}", DeleteAttachment)
             .RequireAuthorization(PolicyDefaults.ConfirmedAccount)
@@ -46,7 +46,7 @@ public static class AttachmentsEndpoints
                 
                 return options;
             })
-            .WithTags("attachments");
+            .WithTags("Attachments");
 
         
         // OpenApi break this endpoint
@@ -54,7 +54,10 @@ public static class AttachmentsEndpoints
         app.MapPost("api/attachments", PostAttachment)
             .DisableAntiforgery()
             .RequireAuthorization(PolicyDefaults.ConfirmedAccount)
-            .Accepts<IFormFile>("multipart/form-data");
+            .Accepts<IFormFile>("multipart/form-data")
+            .WithDescription("Adds file to the database")
+            .WithSummary("Adds attachment to user.")
+            .WithTags("Attachments");
         
         return app;
     }
@@ -140,7 +143,7 @@ public static class AttachmentsEndpoints
              .Disk("S3")
              .UploadAsync(fileInfo.ToStream(), appAttachment.ExternalId, appAttachment.MimeType);
 
-        return TypedResults.Created($"api/attachments/{appAttachment.Id}");
+        return TypedResults.Created(appAttachment.Id.ToString());
     }
 
     private static async Task<Results<NotFound, FileStreamHttpResult>> GetAttachmentFileById(

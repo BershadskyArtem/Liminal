@@ -18,7 +18,6 @@
       - ASPNETCORE_ENVIRONMENT=Development
       # https://stackoverflow.com/questions/58453879/how-to-do-port-mapping-in-docker-when-running-net-core-applications
       - ASPNETCORE_URLS=http://*:3001
-    
     depends_on:
       - s3
       - database

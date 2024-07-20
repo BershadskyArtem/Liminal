@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Liminal.Auth.Abstractions;
 using Liminal.Auth.Common;
+using Liminal.Auth.Flows.OAuth;
 using Liminal.Auth.Models;
 using Liminal.Auth.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Liminal.Auth.Jwt;
@@ -86,5 +88,37 @@ public class JwtTokenGenerator<TUser>(
         await userTokenStore.SaveChangesAsync();
 
         return token;
+    }
+
+    public async Task SignOutAsync(HttpContext context, string? accessToken, string? refreshToken)
+    {
+        UserToken? tokenSet = null;
+
+        if (!string.IsNullOrWhiteSpace(accessToken))
+        {
+            tokenSet = await userTokenStore.GetByAccessToken(accessToken);
+        }
+
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            if (tokenSet is not null)
+            {
+                if (tokenSet.RefreshToken != refreshToken)
+                {
+                    throw new ArgumentException("Access token and refresh token does not correspond.");
+                }
+            }
+            else
+            {
+                tokenSet = await userTokenStore.GetByRefreshToken(refreshToken);
+            }
+        }
+
+        if (tokenSet is null)
+        {
+            return;
+        }
+        
+        await userTokenStore.RemoveAsync(tokenSet, true);
     }
 }
